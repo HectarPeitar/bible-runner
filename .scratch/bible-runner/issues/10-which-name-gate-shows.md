@@ -19,6 +19,8 @@ Pick a policy — per locale, if the honest answer differs by locale:
 
 Judge it by two failure modes: a Georgian player who knows `მეორე რჯული` and sees `კანონი` must not read it as a different book or a bug; and a game that means to teach what the player's congregation actually reads must not teach a name they will never hear again.
 
+The same question applies to the labels themselves, not just book names. The NWT's own divisions are `HEBREW-ARAMAIC SCRIPTURES` / `CHRISTIAN GREEK SCRIPTURES` (`ЕВРЕЙСКО-АРАМЕЙСКИЕ ПИСАНИЯ` / `ХРИСТИАНСКИЕ ГРЕЧЕСКИЕ ПИСАНИЯ`, `Boeken van de Hebreeuwse Geschriften` / `Griekse Geschriften`), where most Bibles in these languages print an equivalent of Old/New Testament. Two of the five courses are named after those NWT divisions, so decide whether course and section labels follow the NWT's wording or the common wording — and remember the research's sourcing rule applies: derive from public-domain texts, cross-check against the NWT.
+
 Answer alongside it: **who is this for?** A JW audience that reads the NWT, or a general Bible audience where NWT naming would be wrong more often than right. That answer decides whether this is a per-locale policy or a single one.
 
 ## Answer

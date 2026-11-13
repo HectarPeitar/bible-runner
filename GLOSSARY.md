@@ -8,7 +8,7 @@
 
 **Route** — the kind of travel a Book Order run makes. A **section route** loops a course; a **canon route** travels the canon from a chosen starting section. The route is a setting of the mode, not a mode of the game.
 
-**Course** — the named grouping of sections that a section route loops. Courses group sections so a loop is long enough to drill: `Law, History & Wisdom` (sections 1–3), `Major and Minor Prophets` (4–5), `Epistles` (8–9).
+**Course** — the named grouping of sections that a section route loops. Courses group sections so a loop is long enough to drill. There are five: `Law, History & Wisdom` (sections 1–3, 22 books), `Major and Minor Prophets` (4–5, 17), `Epistles` (8–9, 21), `Hebrew Scriptures` (1–5, 39), `Greek Scriptures` (6–10, 27). Courses overlap by design and each is an independent loop; the last two are the NWT's own division of the canon.
 
 **Section** — one of the ten traditional groupings of the canon. The unit a canon route can *start* at, and the unit a course is built from. Playing a course is not the same as playing a section.
 

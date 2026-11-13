@@ -56,4 +56,6 @@ The loop, as settled:
 
 ## Amendments
 
-- Section routes loop **courses**, not sections (see `GLOSSARY.md`): `Law, History & Wisdom` (sections 1–3), `Major and Minor Prophets` (4–5), `Epistles` (8–9). What happens to Gospels, Acts and Revelation as loopable courses is unresolved and asked separately — as sections they remain valid canon start points.
+- Section routes loop **courses**, not sections (see `GLOSSARY.md`). Five courses: `Law, History & Wisdom` (sections 1–3, 22 books), `Major and Minor Prophets` (4–5, 17), `Epistles` (8–9, 21), `Hebrew Scriptures` (1–5, 39), `Greek Scriptures` (6–10, 27). They overlap on purpose; each is an independent loop.
+- Gospels, Acts and Revelation get **no course of their own** — they are canon start points only. A one-gate lap is not a run, and Gospels is reachable through `Greek Scriptures`.
+- Assumed, not contradicted: a lap climbs speed continuously across the whole course, not per section.
