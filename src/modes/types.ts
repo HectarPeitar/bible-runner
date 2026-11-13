@@ -1,4 +1,5 @@
 import type { Locale, SectionId } from '../content/books';
+import type { CourseId } from './book-order/routes';
 
 export type ReviewItem = {
   /** Canon position, 1..66. */
@@ -9,20 +10,23 @@ export type ReviewItem = {
 
 export type RunResult = {
   over: boolean;
+  /** The Run finished at Revelation: a canon-complete Run, which never scores. */
+  complete: boolean;
   /** What the end screen lists, in the Mode's own words. */
   review: ReviewItem[];
 };
 
 /** What a player did since the last `advance`. */
-export type Action = { type: 'pick'; lane: number };
+export type Action =
+  | { type: 'pick'; lane: number }
+  | { type: 'finish' }
+  | { type: 'wrap' };
 
 /** Everything a Run needs before it has state. */
-export type RunOptions = {
-  /** Seeds the Run's PRNG, so a Run replays from its seed. */
-  seed: number;
-  /** The Section a Run travels. Ticket 11 plays the Gospels only. */
-  section: SectionId;
-};
+export type RunOptions = { seed: number } & (
+  | { route: CourseId }
+  | { route: 'canon'; start: SectionId }
+);
 
 export interface Mode<S> {
   id: string;
