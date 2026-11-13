@@ -6,11 +6,10 @@ Blocked by: 10
 
 ## Question
 
-Produce the content table itself, in the stack the research ticket picks: 66 rows carrying order (1–66), testament, section, chapter count, aliases, and `names` keyed by locale (en, nl, ru, ka) — the **NWT name is the canonical display name**, since the game prints NWT naming exactly, and the common name is an alias shown only where the reveal policy says so — all four locales complete on every row, no row leaning on fallback.
+Produce the content table itself, in the stack the research ticket picks: 66 rows carrying order (1–66), testament, section, chapter count, and `names` keyed by locale (en, nl, ru, ka). **The NWT name is the only name the game ever shows**, so there is no alias column: one canonical name per book per locale, all four complete on every row, no row leaning on fallback. The four NWT name columns are already captured in [`research/nwt-book-names.md`](../../../research/nwt-book-names.md).
 
-Build the *order and section* data from a public-domain Bible — **never transcribe jw.org**, whose Terms of Use forbid shipping site text in an application — and use jw.org only as a manual NWT spelling cross-check, with that provenance written down in the repo. Ship the aliases the research marked mandatory (Russian and Georgian hard conflicts, `მეორე რჯული` above all) — they are what the after-miss card shows.
-
-Russian and Georgian verified by a native speaker, not by machine translation alone; the aliases are the ones people actually say, not synonyms invented for completeness. Record which section Hebrews sits in (Pauline, 14/7, is the default here) and keep it consistent — it only moves one boundary. Note that Acts and Revelation are single-book sections, so a section route on either is a one-gate lap; whoever builds the picker must decide whether those two are offered.
+Build the *order and section* data from a public-domain Bible — **never transcribe jw.org**, whose Terms of Use forbid shipping site text in an application — and use jw.org only as a manual NWT spelling cross-check, with that provenance written down in the repo. 
+Russian and Georgian transcribed from the research's primary-source tables and spot-checked by a native speaker — a transcription error in `ka` or `ru` teaches a false name, so the check is on the table as built, not a translation exercise. Record which section Hebrews sits in (Pauline, 14/7, is the default here) and keep it consistent — it only moves one boundary. Note that Acts and Revelation are single-book sections, so a section route on either is a one-gate lap; whoever builds the picker must decide whether those two are offered.
 
 Never require or display abbreviations — no locale's set is safe and the Dutch list is incomplete.
 

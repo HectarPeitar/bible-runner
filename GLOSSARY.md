@@ -1,6 +1,6 @@
 # Glossary
 
-**Book** — one of the 66 texts of the canon, with a fixed position in the order.
+**Book** — one of the 66 texts of the canon, with a fixed position in the order and exactly one name per locale: the New World Translation's.
 
 **Canon** — the closed, ordered list of books a player is being taught. This game teaches the New World Translation's canon: 66 books in Protestant order.
 
@@ -32,4 +32,3 @@
 
 **Locale** — the language and script a player plays in. Book names and interface text are always in the same locale.
 
-**Alias** — a widely used alternate name for a book, shown when a player meets the book, so a player who knows it by another name recognises it.
