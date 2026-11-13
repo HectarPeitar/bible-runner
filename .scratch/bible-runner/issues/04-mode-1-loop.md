@@ -1,7 +1,7 @@
 # Pin the Book Order run loop
 
 Type: grilling
-Status: open
+Status: claimed
 Blocked by:
 
 ## Question
