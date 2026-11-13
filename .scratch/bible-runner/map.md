@@ -20,7 +20,7 @@ A spec in this repo a build session can execute without making a new decision: t
 
 ## Not yet specified
 
-- **Feel and tuning**: speed ramp, gate spacing, lane width, what "fast" even means — unanswerable before a playable artifact exists; converges with the prototype ticket.
+- **Tuning numbers**: the speed policy is now a ticket; the actual numbers (ramp rate, ceiling, gate spacing, lane width) are unanswerable before a playable artifact exists and converge with the prototype ticket.
 - **Distractor weighting**: the policy (near misses, never repeat) is decided in a ticket; the actual weights and the odd section edges (minor prophets, books with the same name stem) need play data.
 - **Art and sound direction**: placeholder geometry and text first. Whether the game needs a visual identity at all to be genuinely fun is unresolved, and only answerable once the loop exists.
 - **Mistake-driven practice**: whether a missed book returns within the run or feeds a practice list. Depends on how punishing the loop feels.
