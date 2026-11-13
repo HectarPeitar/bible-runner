@@ -16,7 +16,7 @@ Browser-first static game, no backend, no accounts. Beginners maintain it: borin
 
 **TypeScript + Vite + DOM/CSS. No engine, no canvas.** Dev dependencies: `vite`, `typescript`, `vitest` (all MIT or Apache-2.0). Nothing else unless it earns its place.
 
-Vitest is in the list because this machine's Node cannot strip TypeScript (`ERR_NO_TYPESCRIPT` — a Debian build without the runtime), so a `.ts` test file has to pass through Vite's transform to run at all. Vitest is the smallest way to get that with no extra config, and the pure core is worth testing.
+Vitest is in the list because a `.ts` test file has to pass through Vite's transform to run here: Ubuntu ships Node `+dfsg`, a repack that drops the prebuilt SWC WebAssembly binary behind Node's built-in type stripping, so `node file.ts` and `node:module.stripTypeScriptTypes()` fail with `ERR_NO_TYPESCRIPT`. That is Node's *direct execution* feature missing, not TypeScript — Vite compiles `.ts` normally. Vitest is the smallest way to run the pure core's tests without adding a runner or a build step.
 
 ### The mode boundary
 
