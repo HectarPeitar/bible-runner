@@ -28,10 +28,7 @@ describe('storage: one key, and a game that plays without it', () => {
     expect(loadSettings().locale).toBeNull();
     saveSettings({ ...loadSettings(), locale: 'en' });
 
-    expect(loadSettings().locale).toBe('en');
-    expect(kept.get('bible-runner:v1')).toBe(
-      '{"locale":"en","name":"","boards":{},"boosts":{}}',
-    );
+    expect(loadSettings()).toEqual({ locale: 'en', name: '', boards: {}, boosts: {} });
   });
 
   it('plays when the browser refuses storage', () => {
@@ -141,7 +138,7 @@ describe('storage: one Start boost per Route', () => {
     expect(boostReady(loadSettings(), 'romans-jude')).toBe(false);
   });
 
-  it('trusts no stored boost: anything but a true is no boost, and a Route it does not know drops out', () => {
+  it('trusts no stored boost: only a true is a boost, and a Route it does not know stays harmless', () => {
     vi.stubGlobal('localStorage', {
       getItem: () =>
         JSON.stringify({
@@ -157,14 +154,14 @@ describe('storage: one Start boost per Route', () => {
     expect(boostReady(settings, 'canon')).toBe(false);
     expect(boostReady(settings, 'romans-jude')).toBe(false);
     expect(boostReady(settings, 'isaiah-malachi')).toBe(true);
-    expect(Object.keys(settings.boosts)).toEqual(['isaiah-malachi']);
+    // A Mode's Routes are the Mode's to name: an unknown key is kept, never offered.
+    expect(Object.keys(settings.boosts)).toEqual(['isaiah-malachi', 'nope']);
   });
 
   it('records the second clean Route as the same one boost, never a bigger one', () => {
-    const kept = writable();
+    writable();
     saveSettings(setBoost(setBoost(loadSettings(), 'canon', true), 'canon', true));
 
     expect(loadSettings().boosts).toEqual({ canon: true });
-    expect(kept.get('bible-runner:v1')).toContain('"boosts":{"canon":true}');
   });
 });

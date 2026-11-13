@@ -26,8 +26,10 @@ A mode is a pure transition function plus a renderer. **The shell owns screens, 
 // src/modes/types.ts — the whole contract
 export type RunResult = {
   over: boolean;
+  complete: boolean;       // finished at Revelation: an achievement, never a score
   score: number;
   board: BoardId | null;   // null: this run doesn't score (e.g. a "canon complete" run)
+  boostEarned: boolean;    // this run finished its route cleanly, so the route has a boost
   review: ReviewItem[];    // what the end screen lists, in the mode's own words
 };
 
@@ -35,11 +37,13 @@ export interface Mode<S> {
   id: string;
   /** Boards this mode writes to. The shell never guesses. */
   boards: readonly BoardId[];
+  /** The speed-curve version its scores are recorded under. */
+  curve: number;
   createRun(options: RunOptions, locale: Locale): S;
   /** Pure: returns the next state, never mutates. */
   advance(state: S, dtMs: number, action: Action | null): S;
-  /** Writes into its own host element only. */
-  render(state: S, host: HTMLElement): void;
+  /** Writes into its own host element only, and reports taps back as actions. */
+  render(state: S, host: HTMLElement, dispatch: (action: Action) => void): void;
   result(state: S): RunResult;
 }
 ```
@@ -47,8 +51,8 @@ export interface Mode<S> {
 Rules that keep the boundary real:
 
 - `advance` is **pure** — same state and input, same result. No `Date.now()`, no `Math.random()`, no DOM. Randomness and time arrive as state and `dtMs`, so a run is reproducible from its seed and a bug is replayable.
-- Modes never touch `localStorage`. They report a score and a board id; the shell decides whether it qualifies and asks for a name.
-- Modes never know a name, a screen, or a font. The shell never knows a book, a gate, a lane or a life.
+- Modes never touch `localStorage`. They report a score, a board id, a completion marker and a boost earned; the shell decides what qualifies, asks for a name and writes the boost down.
+- Modes never know a name, a screen, or a font. The shell never knows a book, a gate, a lane, a life or a speed curve: the mode reports its curve version, so a tuning change never reaches `platform/`.
 - The shell never computes a score. It reports what the mode returned.
 
 ### Files
@@ -58,12 +62,13 @@ index.html
 src/
   main.ts                 boot: load storage, mount shell
   shell/
-    shell.ts              title → mode picker → run → result
-    screens.ts            the four screens, plain DOM
+    shell.ts              title → mode picker → run → result, the loop, and the settings
+    screens.ts            title, picker, board and result, plain DOM; the Run is the mode's render
   modes/
     types.ts              Mode<S>, RunResult, Action, RunOptions
     book-order/
-      index.ts            the Mode: boards, createRun/advance/render/result
+      index.ts            the Mode: boards, curve, createRun/advance/render/result
+      routes.ts           the six Routes, the board each scores on, their Book-range labels
       state.ts            RunState and the transitions (pure)
       rules.ts            lives, lanes, bounce, speed curve, gate value
       render.ts           DOM/CSS for lanes, gates, lives, speed
@@ -74,13 +79,12 @@ src/
     strings.ts            types over it, and which Locales are offered and remembered
   platform/
     storage.ts            one localStorage key, read and written through try/catch
-    board.ts              top-N insert, tie rule, curve-version wipe
+    board.ts              BoardId, top-N insert, tie rule, curve-version wipe
     loop.ts               requestAnimationFrame → advance → render
     random.ts             seeded PRNG (mulberry32, ~5 lines, no dependency)
-    types.ts              BoardId, Locale re-export, storage shapes
 ```
 
-`static/` holds the two Noto families and the icon. `scripts/check-content.mjs` validates `books.json` and, once `strings.ts` exists, string completeness.
+`static/` will hold the two Noto families and the icon. `scripts/check-content.mjs` validates `books.json` and, for every shipped Locale, string completeness.
 
 ### Shell contract
 
@@ -96,15 +100,21 @@ One key, `bible-runner:v1`, one JSON object:
 
 ```ts
 {
-  locale: Locale;
+  locale: Locale | null;
   name: string;                       // remembered, for a shared PC
-  boards: Record<BoardId, { curve: number; entries: { name: string; score: number; at: number }[] }>;
+  boards: Record<string, {            // keyed by the board id a mode reports
+    curve: number;
+    entries: { name: string; score: number; at: number }[];
+  }>;
+  boosts: Record<string, true>;       // Route ids with a Start boost waiting
 }
 ```
 
 One key means one read, one write, one thing to clear. All access goes through `storage.ts` inside `try/catch`: private-mode browsers can throw on write, and the game must play anyway — persistence is a convenience, never a requirement.
 
-`curve` is the speed-curve version. Bumping it in `rules.ts` wipes that board's entries, because scores recorded under a different curve are not comparable. Documented, deliberate, and only fires while the curve is being tuned.
+The platform keeps both records without learning what they mean: a board is kept when it is board-shaped, a boost when it is exactly `true`, and the keys are whatever a mode called things. That is why `platform/` imports no mode — a second mode's routes and boards need no edit there.
+
+`curve` is the speed-curve version the mode reports. Bumping it in `rules.ts` wipes that board's entries, because scores recorded under a different curve are not comparable. Documented, deliberate, and only fires while the curve is being tuned.
 
 ### Consequences
 

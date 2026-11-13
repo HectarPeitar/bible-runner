@@ -9,16 +9,6 @@ export type BoardId =
   | 'greek-scriptures'
   | 'canon';
 
-/** One board per Route, in the order the picker lists the Routes. */
-export const BOARD_IDS: readonly BoardId[] = [
-  'law-history-wisdom',
-  'prophets',
-  'epistles',
-  'hebrew-scriptures',
-  'greek-scriptures',
-  'canon',
-];
-
 export type ScoreEntry = {
   name: string;
   score: number;

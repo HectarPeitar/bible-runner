@@ -107,7 +107,7 @@ interface Mode<S> {
 
 **Routes.** A section route loops one Course and never ends except by Lives. A canon route starts at one of the ten Sections and continues through the canon; on reaching Revelation the player is offered finish-or-wrap once per pass. Five Courses: `Genesis–Song of Solomon` (Sections 1–3), `Isaiah–Malachi` (4–5), `Romans–Jude` (8–9), `Genesis–Malachi` (1–5), `Matthew–Revelation` (6–10). Gospels, Acts and Revelation are canon start points only — no Course contains them alone.
 
-**Start boost.** Earned by completing a Route with no Bounces, stored as one boolean per Route, offered on the next Run of that Route, consumed by playing it.
+**Start boost.** Earned by completing a Route with no Bounces, stored as one boolean per Route, offered on the next Run of that Route, consumed by playing it. A Route is only completed by a Run that passed a Gate, so finishing at Revelation without playing earns nothing.
 
 **Content.** All 66 Books, in order, with one New World Translation name per Locale and four Locales complete on every row. Data is checked by a dependency-free script asserting 66 rows, contiguous Sections in canonical order, four non-empty names per row, and no two Books sharing a name within a Locale — the last one matters because a duplicate would put the correct answer on two Gates. Order and Section structure come from the universal Protestant canon; names are transcribed from the New World Translation's own per-Locale tables. No scripture text, footnotes or study material is used or shipped.
 

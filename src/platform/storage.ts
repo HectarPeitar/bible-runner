@@ -1,23 +1,26 @@
-// One key, one object: the chosen Locale, the remembered name, and every board.
-// All access inside try/catch — a browser that refuses storage must still play,
-// because persistence is a convenience and never a requirement.
+// One key, one object: the chosen Locale, the remembered name, every board, and
+// the Start boosts. All access inside try/catch — a browser that refuses storage
+// must still play, because persistence is a convenience and never a requirement.
 
 import { LOCALES, type Locale } from '../content/books';
-import { ROUTES, type RouteId } from '../modes/book-order/routes';
-import { BOARD_IDS, cleanName, type Board, type BoardId, type ScoreEntry } from './board';
+import { cleanName, type Board, type ScoreEntry } from './board';
 
 const KEY = 'bible-runner:v1';
 
-/** One Start boost per Route, marked ready by a clean finish and spent by a Run. */
-export type Boosts = Partial<Record<RouteId, true>>;
+/**
+ * One Start boost per Route, marked ready by a clean finish and spent by a Run.
+ * Opaque here: the key is whatever the Mode called its Route, so a second Mode
+ * stores boosts without the platform learning what a Route is.
+ */
+export type Boosts = Record<string, true>;
 
 export type Settings = {
   /** The Locale the player chose, or null before they have chosen one. */
   locale: Locale | null;
   /** Remembered for the next player on a shared computer; empty before the first save. */
   name: string;
-  /** One entry per Route, keyed by board id; absent until a score is recorded on it. */
-  boards: Partial<Record<BoardId, Board>>;
+  /** One entry per board id a Mode reports; absent until a score is recorded on it. */
+  boards: Partial<Record<string, Board>>;
   /** The Routes with a Start boost waiting to be offered; absent until one is earned. */
   boosts: Boosts;
 };
@@ -61,17 +64,19 @@ export function loadSettings(): Settings {
     const raw = localStorage.getItem(KEY);
     const stored: unknown = raw === null ? null : JSON.parse(raw);
     if (!isRecord(stored)) return NO_SETTINGS;
-    const boards: Partial<Record<BoardId, Board>> = {};
+    const boards: Partial<Record<string, Board>> = {};
     if (isRecord(stored.boards)) {
-      for (const id of BOARD_IDS) {
-        const board = toBoard(stored.boards[id]);
+      for (const [id, value] of Object.entries(stored.boards)) {
+        const board = toBoard(value);
         if (board !== null) boards[id] = board;
       }
     }
     const boosts: Boosts = {};
     if (isRecord(stored.boosts)) {
-      for (const route of ROUTES) {
-        if (stored.boosts[route] === true) boosts[route] = true;
+      // Any key is kept, because only the Mode knows which Routes it has; only a
+      // stored `true` is a boost, so a key nothing ever asks about is harmless.
+      for (const [route, ready] of Object.entries(stored.boosts)) {
+        if (ready === true) boosts[route] = true;
       }
     }
     return {
@@ -86,12 +91,12 @@ export function loadSettings(): Settings {
 }
 
 /** A Start boost is waiting on this Route, until a Run of it accepts the boost. */
-export function boostReady(settings: Settings, route: RouteId): boolean {
+export function boostReady(settings: Settings, route: string): boolean {
   return settings.boosts[route] === true;
 }
 
 /** Marks a Route's Start boost ready after a clean finish, or spends it when a Run accepts it. */
-export function setBoost(settings: Settings, route: RouteId, ready: boolean): Settings {
+export function setBoost(settings: Settings, route: string, ready: boolean): Settings {
   const boosts: Boosts = { ...settings.boosts };
   if (ready) boosts[route] = true;
   else delete boosts[route];

@@ -2,7 +2,7 @@ import { BOOKS } from '../../content/books';
 import { fill, strings } from '../../content/strings';
 import type { Action } from '../types';
 import { CANON_FIRST_BOOK, CANON_LAST_BOOK } from './routes';
-import { rowTravelMs } from './rules';
+import { LANES, rowTravelMs } from './rules';
 import type { BookOrderState } from './state';
 
 type View = {
@@ -64,7 +64,7 @@ function createView(host: HTMLElement, dispatch: (action: Action) => void): View
 
   const row = document.createElement('div');
   row.className = 'row';
-  const gates = Array.from({ length: 3 }, (_unused, lane) => {
+  const gates = Array.from({ length: LANES }, (_unused, lane) => {
     const gate = document.createElement('button');
     gate.type = 'button';
     gate.className = 'gate';

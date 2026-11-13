@@ -8,6 +8,7 @@ Blocked by: 14
 
 - [ ] A Route completed with no Bounces records a boost for that Route
 - [ ] A Route completed with one or more Bounces records nothing
+- [ ] A Run that passed no Gate and finishes at Revelation at once records nothing
 - [ ] The next Run on that Route offers the boost
 - [ ] Accepting starts the Run at raised Speed; declining starts it normal
 - [ ] The boost is consumed by the Run that accepts it, and is not re-offered

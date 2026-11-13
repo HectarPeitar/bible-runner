@@ -39,6 +39,8 @@ export interface Mode<S> {
   id: string;
   /** Boards this Mode writes to. The shell never guesses. */
   boards: readonly BoardId[];
+  /** The speed-curve version its scores are recorded under; bumping it wipes a board. */
+  curve: number;
   createRun(options: RunOptions, locale: Locale): S;
   /** Pure: same state and input, same result. No clock, no randomness, no DOM. */
   advance(state: S, dtMs: number, action: Action | null): S;
