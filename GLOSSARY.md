@@ -20,6 +20,12 @@
 
 **Life** — a player's remaining tolerance for a wrong gate within a run.
 
+**Bounce** — hitting a wrong gate. The run does not advance: the same row of gates returns, the speed earned so far is lost, and one life is spent. A book cannot be passed over; the order is preserved by construction.
+
+**Speed** — how fast gates arrive, climbing as the run goes and never resetting except by a bounce. It rises toward a ceiling rather than forever.
+
+**Start boost** — an elevated starting speed, earned by a clean route rather than granted by a menu.
+
 **Mode** — a ruleset played over the shared content, with its own way of scoring and ending. Book Order is the first mode; the game is a container for modes.
 
 **Locale** — the language and script a player plays in. Book names and interface text are always in the same locale.
