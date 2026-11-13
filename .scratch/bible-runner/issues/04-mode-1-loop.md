@@ -38,7 +38,7 @@ Still to pin:
 
 The loop, as settled:
 
-**Routes.** A section route loops one of the ten sections; a canon route runs the canon from any one of the ten section starts. Before a canon run the player chooses whether it *finishes* at Revelation or *wraps* into Genesis and continues. Section route = endless laps. Canon route = endless, or finite by choice.
+**Routes.** A section route loops a **course** — a named grouping of sections — not a single section; a canon route runs the canon from any one of the ten section starts. Before a canon run the player chooses whether it *finishes* at Revelation or *wraps* into Genesis and continues. Section route = endless laps. Canon route = endless, or finite by choice.
 
 **A beat.** Three lanes, one gate per lane, one row arriving at a time, scrolling toward the player, exactly one correct book on screen. Everything moves: a single `translateY` per gate, one overlap test.
 
@@ -53,3 +53,7 @@ The loop, as settled:
 **Known hole in the distractor rule.** Acts and Revelation are sections of exactly one book, so "two from the same section" is unsatisfiable there; the Gospels hold only four books, so the same pair recurs quickly. Fallback: where a section holds fewer than three books, take the nearest books by canon position from the adjoining section (Acts pulls from John/ Romans; Revelation from Jude/ Genesis) — position-based, so the choice is still about where a book sits, not about which section it belongs to.
 
 **Open, deliberately:** the numeric shape of the speed curve, its ceiling, and whether a bounce returns speed to the run's start (including any boost) or to zero-gain base — all prototyping findings.
+
+## Amendments
+
+- Section routes loop **courses**, not sections (see `GLOSSARY.md`): `Law, History & Wisdom` (sections 1–3), `Major and Minor Prophets` (4–5), `Epistles` (8–9). What happens to Gospels, Acts and Revelation as loopable courses is unresolved and asked separately — as sections they remain valid canon start points.

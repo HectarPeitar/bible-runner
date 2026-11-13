@@ -4,13 +4,15 @@
 
 **Canon** — the closed, ordered list of books a player is being taught. This game teaches the New World Translation's canon: 66 books in Protestant order.
 
-**Section** — one of the ten traditional groupings of the canon (Law, History, Wisdom, Major Prophets, Minor Prophets, Gospels, Acts, Pauline Epistles, General Epistles, Revelation). The unit a run is played over, and the ladder of difficulty across runs.
-
 **Book Order** — the game's first mode: continuing the canon in the correct sequence.
 
-**Route** — the stretch of canon a Book Order run travels. A **section route** loops one section; a **canon route** runs the whole canon from a chosen starting book. The route is a setting of the mode, not a mode of the game.
+**Route** — the kind of travel a Book Order run makes. A **section route** loops a course; a **canon route** travels the canon from a chosen starting section. The route is a setting of the mode, not a mode of the game.
 
-**Start point** — the book a canon route begins at.
+**Course** — the named grouping of sections that a section route loops. Courses group sections so a loop is long enough to drill: `Law, History & Wisdom` (sections 1–3), `Major and Minor Prophets` (4–5), `Epistles` (8–9).
+
+**Section** — one of the ten traditional groupings of the canon. The unit a canon route can *start* at, and the unit a course is built from. Playing a course is not the same as playing a section.
+
+**Start point** — the section a canon route begins at. Every section is a valid start point, whether or not it belongs to a course.
 
 **Run** — one play of a mode, from start to result. A Book Order run travels one route.
 
