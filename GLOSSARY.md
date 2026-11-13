@@ -8,7 +8,11 @@
 
 **Book Order** — the game's first mode: continuing the canon in the correct sequence.
 
-**Run** — one play of a mode, from start to result. A Book Order run covers exactly one section.
+**Route** — the stretch of canon a Book Order run travels. A **section route** loops one section; a **canon route** runs the whole canon from a chosen starting book. The route is a setting of the mode, not a mode of the game.
+
+**Start point** — the book a canon route begins at.
+
+**Run** — one play of a mode, from start to result. A Book Order run travels one route.
 
 **Gate** — an oncoming obstacle carrying a book's name. Reaching the correct next book passes it; reaching any other costs a life.
 
