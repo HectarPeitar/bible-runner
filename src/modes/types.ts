@@ -1,4 +1,5 @@
 import type { Locale, SectionId } from '../content/books';
+import type { BoardId } from '../platform/board';
 import type { CourseId } from './book-order/routes';
 
 export type ReviewItem = {
@@ -12,6 +13,10 @@ export type RunResult = {
   over: boolean;
   /** The Run finished at Revelation: a canon-complete Run, which never scores. */
   complete: boolean;
+  /** `100 × Speed` per correct Gate, rounded, summed. Zero for a complete Run. */
+  score: number;
+  /** The board this Run scores on; null when it does not score at all. */
+  board: BoardId | null;
   /** What the end screen lists, in the Mode's own words. */
   review: ReviewItem[];
 };
@@ -30,6 +35,8 @@ export type RunOptions = { seed: number } & (
 
 export interface Mode<S> {
   id: string;
+  /** Boards this Mode writes to. The shell never guesses. */
+  boards: readonly BoardId[];
   createRun(options: RunOptions, locale: Locale): S;
   /** Pure: same state and input, same result. No clock, no randomness, no DOM. */
   advance(state: S, dtMs: number, action: Action | null): S;

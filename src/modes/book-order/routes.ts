@@ -1,4 +1,5 @@
 import { BOOKS, type Book, type Locale, type SectionId } from '../../content/books';
+import type { BoardId } from '../../platform/board';
 
 /** The five Courses, each a contiguous group of Sections. */
 export type CourseId =
@@ -35,6 +36,23 @@ export const CANON_LAST_BOOK: number = BOOKS[BOOKS.length - 1].order;
 
 /** The six Routes a player picks between, in the order the picker shows them. */
 export const ROUTES: readonly RouteId[] = [...COURSES.map((course) => course.id), 'canon'];
+
+const BOARD_OF_ROUTE: Record<RouteId, BoardId> = {
+  'genesis-song-of-solomon': 'law-history-wisdom',
+  'isaiah-malachi': 'prophets',
+  'romans-jude': 'epistles',
+  'genesis-malachi': 'hebrew-scriptures',
+  'matthew-revelation': 'greek-scriptures',
+  canon: 'canon',
+};
+
+/** The one board a Route's Runs write to: the Mode declares it, the shell never guesses. */
+export function boardOf(route: RouteId): BoardId {
+  return BOARD_OF_ROUTE[route];
+}
+
+/** Every board this Mode writes to. */
+export const MODE_BOARDS: readonly BoardId[] = ROUTES.map(boardOf);
 
 function courseOf(id: CourseId): Course {
   const course = COURSES.find((candidate) => candidate.id === id);

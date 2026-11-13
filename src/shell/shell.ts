@@ -1,9 +1,19 @@
 import { SECTION_ORDER, type Locale, type SectionId } from '../content/books';
-import { LOCALES_OFFERED, resolveLocale, strings } from '../content/strings';
+import { LOCALES_OFFERED, fill, resolveLocale, strings } from '../content/strings';
 import { BOOK_ORDER } from '../modes/book-order';
-import { ROUTES, routeLabel, sectionLabel } from '../modes/book-order/routes';
+import { SPEED_CURVE } from '../modes/book-order/rules';
+import { ROUTES, boardOf, routeLabel, sectionLabel } from '../modes/book-order/routes';
 import type { BookOrderState } from '../modes/book-order/state';
 import type { Action, RunOptions } from '../modes/types';
+import {
+  SHOWN,
+  cleanName,
+  entriesOf,
+  qualifies,
+  recordScore,
+  type BoardId,
+  type ScoreEntry,
+} from '../platform/board';
 import { startLoop } from '../platform/loop';
 import { loadSettings, saveSettings } from '../platform/storage';
 
@@ -53,6 +63,29 @@ export function startShell(app: HTMLElement): void {
     app.replaceChildren(title, tagline, localePicker(locale, showTitle), play);
   };
 
+  /** The entries a board shows under today's speed curve; a bumped curve shows none. */
+  const boardEntries = (board: BoardId): readonly ScoreEntry[] =>
+    entriesOf(settings.boards[board], SPEED_CURVE);
+
+  const scoreList = (entries: readonly ScoreEntry[], locale: Locale): HTMLElement => {
+    const copy = strings(locale);
+    if (entries.length === 0) {
+      const empty = document.createElement('p');
+      empty.textContent = copy.boardEmpty;
+      return empty;
+    }
+    const list = document.createElement('ol');
+    for (const entry of entries) {
+      const item = document.createElement('li');
+      item.textContent = fill(copy.boardEntry, {
+        name: entry.name,
+        score: String(entry.score),
+      });
+      list.append(item);
+    }
+    return list;
+  };
+
   const showPicker = (locale: Locale): void => {
     markLocale(locale);
     const copy = strings(locale);
@@ -93,7 +126,95 @@ export function startShell(app: HTMLElement): void {
     });
     canon.append(canonLabel, start, begin);
 
-    app.replaceChildren(title, blurb, localePicker(locale, showPicker), courses, canon);
+    const scores = document.createElement('button');
+    scores.type = 'button';
+    scores.textContent = copy.scores;
+    scores.addEventListener('click', () => showBoards(locale));
+
+    app.replaceChildren(title, blurb, localePicker(locale, showPicker), courses, canon, scores);
+  };
+
+  const showBoards = (locale: Locale): void => {
+    markLocale(locale);
+    const copy = strings(locale);
+    const title = document.createElement('h1');
+    title.textContent = copy.scores;
+
+    const sections = ROUTES.map((route) => {
+      const heading = document.createElement('h2');
+      heading.textContent = routeLabel(route, locale);
+      const section = document.createElement('section');
+      section.append(heading, scoreList(boardEntries(boardOf(route)), locale));
+      return section;
+    });
+
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.textContent = copy.back;
+    back.addEventListener('click', () => showPicker(locale));
+
+    app.replaceChildren(title, ...sections, back);
+  };
+
+  /**
+   * The name is remembered before the Run is recorded, so a friend's turn is one
+   * click. A refused write still leaves this Run's entry in hand for the screen.
+   */
+  const record = (
+    state: BookOrderState,
+    options: RunOptions,
+    locale: Locale,
+    board: BoardId,
+    score: number,
+    raw: string,
+  ): void => {
+    const name = cleanName(raw);
+    settings = {
+      ...settings,
+      name,
+      boards: {
+        ...settings.boards,
+        [board]: recordScore(settings.boards[board], SPEED_CURVE, {
+          name,
+          score,
+          at: Date.now(),
+        }),
+      },
+    };
+    saveSettings(settings);
+    showResult(state, options, locale, true);
+  };
+
+  const nameForm = (
+    state: BookOrderState,
+    options: RunOptions,
+    locale: Locale,
+    board: BoardId,
+    score: number,
+  ): HTMLFormElement => {
+    const copy = strings(locale);
+    const form = document.createElement('form');
+    const prompt = document.createElement('p');
+    prompt.textContent = copy.namePrompt;
+    const label = document.createElement('label');
+    label.textContent = copy.nameLabel;
+    const input = document.createElement('input');
+    input.name = 'name';
+    input.value = settings.name;
+    input.ariaLabel = copy.nameLabel;
+    label.append(input);
+    const save = document.createElement('button');
+    save.type = 'submit';
+    save.textContent = copy.saveScore;
+    const note = document.createElement('p');
+    note.className = 'local';
+    note.textContent = copy.staysOnDevice;
+    form.append(prompt, label, save, note);
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      record(state, options, locale, board, score, input.value);
+    });
+    return form;
   };
 
   const showRun = (options: RunOptions, locale: Locale): void => {
@@ -115,12 +236,19 @@ export function startShell(app: HTMLElement): void {
     });
   };
 
-  const showResult = (state: BookOrderState, options: RunOptions, locale: Locale): void => {
+  const showResult = (
+    state: BookOrderState,
+    options: RunOptions,
+    locale: Locale,
+    recorded = false,
+  ): void => {
+    markLocale(locale);
     const copy = strings(locale);
     const result = BOOK_ORDER.result(state);
     const title = document.createElement('h1');
     const caption = document.createElement('p');
     const missed = document.createElement('ol');
+    const screen: HTMLElement[] = [title, caption, missed];
 
     if (result.complete) {
       title.textContent = copy.canonComplete;
@@ -135,6 +263,17 @@ export function startShell(app: HTMLElement): void {
       }
     }
 
+    if (result.board !== null) {
+      const board = result.board;
+      const score = document.createElement('p');
+      score.className = 'score';
+      score.textContent = fill(copy.score, { score: String(result.score) });
+      screen.push(score, scoreList(boardEntries(board).slice(0, SHOWN), locale));
+      if (!recorded && qualifies(boardEntries(board), result.score)) {
+        screen.push(nameForm(state, options, locale, board, result.score));
+      }
+    }
+
     const again = document.createElement('button');
     again.type = 'button';
     again.textContent = copy.playAgain;
@@ -143,7 +282,7 @@ export function startShell(app: HTMLElement): void {
     choose.type = 'button';
     choose.textContent = copy.chooseRoute;
     choose.addEventListener('click', () => showPicker(locale));
-    app.replaceChildren(title, caption, missed, again, choose);
+    app.replaceChildren(...screen, again, choose);
   };
 
   showTitle(firstLocale);

@@ -295,6 +295,8 @@ describe('Book Order: Routes', () => {
     const result = BOOK_ORDER.result(finish(state));
     expect(result.over).toBe(true);
     expect(result.complete).toBe(true);
+    expect(result.board).toBeNull();
+    expect(result.score).toBe(0);
   });
 
   it('a canon Run that begins at Revelation offers finish-or-wrap immediately', () => {
@@ -303,6 +305,45 @@ describe('Book Order: Routes', () => {
     expect(state.position).toBe(BOOKS[BOOKS.length - 1].order);
     expect(state.offer).toBe('finish-or-wrap');
     expect(BOOK_ORDER.result(finish(state)).complete).toBe(true);
+  });
+});
+
+describe('Book Order: the score and its board', () => {
+  it('a correct pick scores 100 × Speed, rounded, and the total is an integer', () => {
+    const first = pass(start());
+    expect(BOOK_ORDER.result(first).score).toBe(100);
+
+    const second = pass(first);
+    expect(BOOK_ORDER.result(second).score).toBe(300);
+    expect(Number.isInteger(BOOK_ORDER.result(second).score)).toBe(true);
+  });
+
+  it('a Bounce awards nothing for the row it spoiled, and keeps the score earned so far', () => {
+    let state = pass(start());
+    const earned = BOOK_ORDER.result(state).score;
+
+    state = pick(state, wrongLane(state));
+    state = pass(state);
+
+    expect(BOOK_ORDER.result(state).score).toBe(earned);
+  });
+
+  it('each Route scores on its own board, and a Course lap never reaches the canon board', () => {
+    expect(BOOK_ORDER.boards).toHaveLength(ROUTES.length);
+    expect(new Set(BOOK_ORDER.boards).size).toBe(ROUTES.length);
+    expect(BOOK_ORDER.boards).toContain('canon');
+
+    const laps = ROUTES.filter((route): route is CourseId => route !== 'canon').map(
+      (route) => BOOK_ORDER.result(startCourse(route)).board,
+    );
+    expect(laps).toEqual([
+      'law-history-wisdom',
+      'prophets',
+      'epistles',
+      'hebrew-scriptures',
+      'greek-scriptures',
+    ]);
+    expect(BOOK_ORDER.result(canon('gospels')).board).toBe('canon');
   });
 });
 

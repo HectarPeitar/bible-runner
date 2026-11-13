@@ -4,6 +4,9 @@
 export const LIVES = 3;
 export const LANES = 3;
 
+/** The speed-curve version stored with every board; bumping it clears the boards. */
+export const SPEED_CURVE = 1;
+
 export const START_SPEED = 1;
 export const SPEED_CEILING = 6;
 export const SPEED_RAMP = 0.2;
