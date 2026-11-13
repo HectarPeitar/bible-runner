@@ -1,13 +1,26 @@
-import { BOOKS, type Locale, type SectionId, type Book } from '../../content/books';
+import { BOOKS, type Locale, type SectionId } from '../../content/books';
 import { nextRandom, type RandomState } from '../../platform/random';
 import type { Action, ReviewItem, RunOptions, RunResult } from '../types';
 import { LANES, LIVES, START_SPEED, climbSpeed, rowTravelMs } from './rules';
+import {
+  CANON_FIRST_BOOK,
+  CANON_LAST_BOOK,
+  firstBookOfRoute,
+  firstBookOfSection,
+  nextBookOnRoute,
+  type RouteId,
+} from './routes';
+
+/** A canon Run has reached Revelation and must finish or wrap into Genesis. */
+export type Offer = 'finish-or-wrap';
 
 export type BookOrderState = {
   /** The PRNG's position, carried in state so `advance` stays pure. */
   readonly rng: RandomState;
   readonly locale: Locale;
-  readonly section: SectionId;
+  readonly route: RouteId;
+  /** Canon order of the Book the Run is at: the one just passed, or where it began. */
+  readonly position: number;
   /** Canon order of the next Book: the correct Gate on this row. */
   readonly answer: number;
   /** Canon order per lane, three lanes. Exactly one is the answer. */
@@ -22,25 +35,13 @@ export type BookOrderState = {
   readonly review: readonly number[];
   /** Time this row has spent travelling toward the player. */
   readonly beatMs: number;
+  readonly offer: Offer | null;
+  /** The Run finished at Revelation: a canon-complete Run, which never scores. */
+  readonly complete: boolean;
   readonly over: boolean;
 };
 
-const booksOf = (section: SectionId): readonly Book[] =>
-  BOOKS.filter((book) => book.section === section);
-
-/** The Book after `order` inside the Section, wrapping to its first Book. */
-export function nextInSection(section: SectionId, order: number): number {
-  const books = booksOf(section);
-  const at = books.findIndex((book) => book.order === order);
-  return books[(at + 1) % books.length].order;
-}
-
-/** The Book before `order` inside the Section, wrapping to its last Book. */
-export function previousInSection(section: SectionId, order: number): number {
-  const books = booksOf(section);
-  const at = books.findIndex((book) => book.order === order);
-  return books[(at - 1 + books.length) % books.length].order;
-}
+const sectionOf = (order: number): SectionId => BOOKS[order - 1].section;
 
 /** Candidate Distractors: the answer's own Section, or its nearest neighbours. */
 function distractorPool(section: SectionId, answer: number): number[] {
@@ -104,7 +105,7 @@ function drawRow(
 
 /** Starts the row for `state.answer`: a new row is a new beat. */
 function beginRow(state: BookOrderState): BookOrderState {
-  const draw = drawRow(state.section, state.answer, state.rng, state.usedPairs);
+  const draw = drawRow(sectionOf(state.answer), state.answer, state.rng, state.usedPairs);
   return {
     ...state,
     rng: draw.rng,
@@ -115,15 +116,37 @@ function beginRow(state: BookOrderState): BookOrderState {
   };
 }
 
-export function createRun(options: RunOptions, locale: Locale): BookOrderState {
-  const first = booksOf(options.section)[0];
-  if (first === undefined) throw new Error(`Section "${options.section}" has no Books`);
+/** A correct Gate advances the Run; reaching Revelation offers finish-or-wrap. */
+function passGate(state: BookOrderState): BookOrderState {
+  const position = state.answer;
+  if (state.route === 'canon' && position === CANON_LAST_BOOK) {
+    return beginRow({
+      ...state,
+      position,
+      answer: CANON_FIRST_BOOK,
+      offer: 'finish-or-wrap',
+    });
+  }
   return beginRow({
+    ...state,
+    position,
+    answer: nextBookOnRoute(state.route, position),
+  });
+}
+
+export function createRun(options: RunOptions, locale: Locale): BookOrderState {
+  const route = options.route;
+  const position =
+    options.route === 'canon'
+      ? firstBookOfSection(options.start).order
+      : firstBookOfRoute(options.route);
+
+  const state: BookOrderState = {
     rng: options.seed >>> 0,
     locale,
-    section: options.section,
-    // The Run starts on the Section's first Book, so the first row asks for the second.
-    answer: nextInSection(options.section, first.order),
+    route,
+    position,
+    answer: nextBookOnRoute(route, position),
     gates: [],
     lives: LIVES,
     speed: START_SPEED,
@@ -131,8 +154,16 @@ export function createRun(options: RunOptions, locale: Locale): BookOrderState {
     usedPairs: [],
     review: [],
     beatMs: 0,
+    offer: null,
+    complete: false,
     over: false,
-  });
+  };
+
+  if (options.route === 'canon' && position === CANON_LAST_BOOK) {
+    // Beginning at Revelation is already reaching it: the first choice is finish-or-wrap.
+    return beginRow({ ...state, answer: CANON_FIRST_BOOK, offer: 'finish-or-wrap' });
+  }
+  return beginRow(state);
 }
 
 export function advance(
@@ -142,26 +173,27 @@ export function advance(
 ): BookOrderState {
   if (state.over) return state;
 
+  if (state.offer !== null) {
+    if (action?.type === 'finish') {
+      return { ...state, offer: null, complete: true, over: true };
+    }
+    if (action?.type === 'wrap') return { ...state, offer: null };
+    return state;
+  }
+
   const pickedLane = action?.type === 'pick' ? action.lane : null;
 
   if (state.marked) {
     // After a Bounce only the marked Gate continues the Run; other taps do nothing.
     if (pickedLane !== null && state.gates[pickedLane] === state.answer) {
-      return beginRow({
-        ...state,
-        answer: nextInSection(state.section, state.answer),
-      });
+      return passGate(state);
     }
     return state;
   }
 
   if (pickedLane !== null) {
     if (state.gates[pickedLane] === state.answer) {
-      return beginRow({
-        ...state,
-        answer: nextInSection(state.section, state.answer),
-        speed: climbSpeed(state.speed),
-      });
+      return passGate({ ...state, speed: climbSpeed(state.speed) });
     }
     // A Bounce: the row stays, one Life goes, the Speed built so far is lost.
     const lives = state.lives - 1;
@@ -180,5 +212,5 @@ export function result(state: BookOrderState): RunResult {
   const review: ReviewItem[] = [...state.review]
     .sort((a, b) => a - b)
     .map((order) => ({ order, name: BOOKS[order - 1].names[state.locale] }));
-  return { over: state.over, review };
+  return { over: state.over, complete: state.complete, review };
 }

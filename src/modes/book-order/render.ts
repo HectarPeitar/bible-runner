@@ -1,7 +1,8 @@
 import { BOOKS } from '../../content/books';
 import type { Action } from '../types';
-import { previousInSection, type BookOrderState } from './state';
+import { CANON_FIRST_BOOK, CANON_LAST_BOOK } from './routes';
 import { rowTravelMs } from './rules';
+import type { BookOrderState } from './state';
 
 type View = {
   after: HTMLParagraphElement;
@@ -9,6 +10,10 @@ type View = {
   speed: HTMLSpanElement;
   row: HTMLDivElement;
   gates: HTMLButtonElement[];
+  offer: HTMLDivElement;
+  prompt: HTMLParagraphElement;
+  finish: HTMLButtonElement;
+  wrap: HTMLButtonElement;
 };
 
 const views = new WeakMap<HTMLElement, View>();
@@ -21,7 +26,7 @@ export function render(
   const view = views.get(host) ?? createView(host, dispatch);
   const name = (order: number): string => BOOKS[order - 1].names[state.locale];
 
-  view.after.textContent = `After ${name(previousInSection(state.section, state.answer))}`;
+  view.after.textContent = `After ${name(state.position)}`;
   view.lives.textContent = String(state.lives);
   view.speed.textContent = state.speed.toFixed(1);
 
@@ -33,6 +38,15 @@ export function render(
     gate.textContent = name(order);
     gate.className = state.marked && order === state.answer ? 'gate marked' : 'gate';
   });
+
+  const offering = state.offer !== null;
+  view.offer.hidden = !offering;
+  view.row.hidden = offering;
+  if (offering) {
+    view.prompt.textContent = `You reached ${name(CANON_LAST_BOOK)}. Finish, or wrap into ${name(CANON_FIRST_BOOK)}?`;
+    view.finish.textContent = `Finish at ${name(CANON_LAST_BOOK)}`;
+    view.wrap.textContent = `Wrap into ${name(CANON_FIRST_BOOK)}`;
+  }
 }
 
 function createView(host: HTMLElement, dispatch: (action: Action) => void): View {
@@ -58,8 +72,19 @@ function createView(host: HTMLElement, dispatch: (action: Action) => void): View
   });
   row.append(...gates);
 
-  host.replaceChildren(after, status, row);
-  const view = { after, lives, speed, row, gates };
+  const offer = document.createElement('div');
+  offer.className = 'offer';
+  const prompt = document.createElement('p');
+  const finish = document.createElement('button');
+  finish.type = 'button';
+  finish.addEventListener('click', () => dispatch({ type: 'finish' }));
+  const wrap = document.createElement('button');
+  wrap.type = 'button';
+  wrap.addEventListener('click', () => dispatch({ type: 'wrap' }));
+  offer.append(prompt, finish, wrap);
+
+  host.replaceChildren(after, status, row, offer);
+  const view = { after, lives, speed, row, gates, offer, prompt, finish, wrap };
   views.set(host, view);
   return view;
 }
