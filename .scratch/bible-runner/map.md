@@ -26,6 +26,8 @@ A spec in this repo a build session can execute without making a new decision: t
 - [NWT book names per locale](issues/02-research-nwt-names.md): all 66 captured for en/nl/ru/ka; names diverge badly from common usage (Georgian ~29, Russian 6 + all 21 NT), so what a gate prints is its own ticket; two Noto families required, not one.
 - [Stack: what mode 1 is built in](issues/01-research-stack.md): TypeScript + Vite + DOM/CSS, no engine — CSS per-character font fallback is what makes four locales cheap; Kaplay runner-up, switch at sprites/particles/audio.
 
+- [Assemble the spec](issues/08-task-spec-assembly.md): [`.scratch/bible-runner/spec.md`](spec.md), ready-for-agent. Written before the slice on the operator's call; the tuning numbers are the spec's one declared open end, confined to the Rules module.
+
 ## Not yet specified
 
 - **Tuning numbers**: the speed policy is now a ticket; the actual numbers (ramp rate, ceiling, gate spacing, lane width) are unanswerable before a playable artifact exists and converge with the prototype ticket.
