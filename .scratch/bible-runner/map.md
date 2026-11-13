@@ -17,6 +17,7 @@ A spec in this repo a build session can execute without making a new decision: t
 
 ## Decisions so far
 
+- [Pin the Book Order run loop](issues/04-mode-1-loop.md): 3 lanes, one correct of three, 3 lives, and a wrong pick *bounces* — no book can be skipped, so order is never broken; speed climbs to a ceiling and multiplies score; start boost earned per route.
 - [NWT book names per locale](issues/02-research-nwt-names.md): all 66 captured for en/nl/ru/ka; names diverge badly from common usage (Georgian ~29, Russian 6 + all 21 NT), so what a gate prints is its own ticket; two Noto families required, not one.
 - [Stack: what mode 1 is built in](issues/01-research-stack.md): TypeScript + Vite + DOM/CSS, no engine — CSS per-character font fallback is what makes four locales cheap; Kaplay runner-up, switch at sprites/particles/audio.
 
@@ -25,7 +26,7 @@ A spec in this repo a build session can execute without making a new decision: t
 - **Tuning numbers**: the speed policy is now a ticket; the actual numbers (ramp rate, ceiling, gate spacing, lane width) are unanswerable before a playable artifact exists and converge with the prototype ticket.
 - **Distractor weighting**: the policy (near misses, never repeat) is decided in a ticket; the actual weights and the odd section edges (minor prophets, books with the same name stem) need play data.
 - **Art and sound direction**: placeholder geometry and text first. Whether the game needs a visual identity at all to be genuinely fun is unresolved, and only answerable once the loop exists.
-- **Mistake-driven practice**: whether a missed book returns within the run or feeds a practice list. Depends on how punishing the loop feels.
+- **Practice beyond a run**: bounced books are reviewed on the end screen, but whether they later feed a drilling mode (or the run itself) is unshaped.
 - **Accessibility**: keyboard-only play, colourblind-safe gates, reduced motion. Probably cheap, but decide once gate visuals exist.
 - **Curriculum beyond mode 1**: sections as a progression path, chapter counts and other Bible knowledge as later modes. Shape unclear until the slice plays.
 

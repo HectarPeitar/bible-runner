@@ -1,7 +1,7 @@
 # Pin the Book Order run loop
 
 Type: grilling
-Status: claimed
+Status: resolved
 Blocked by:
 
 ## Question
@@ -24,6 +24,7 @@ Pin the loop precisely enough to build, in words rather than code.
 - **Start boost**, earned: run a route clean and the next run on that route offers one. Not a menu toggle.
 - **A bounce teaches**: after one bounce the correct gate is marked and you tap it to continue — a life and the speed earned are the price, the name is the lesson. The end-of-run screen lists every book that bounced, in order.
 - **Two scoreboard shapes**: the canon route's endless runs share the canon board; a run that stops at Revelation earns a "canon complete" marker instead of a score.
+- **Distractors come from the answer's own section** — two other books from the same section, so the choice tests where a book sits among its neighbours in kind. Fallback needed where a section holds fewer than three books (see answer).
 
 Still to pin:
 
@@ -34,3 +35,21 @@ Still to pin:
 - **Distractor policy**: near misses from the same section first, then same testament, never repeating a gate within a run, never showing the answer twice.
 
 ## Answer
+
+The loop, as settled:
+
+**Routes.** A section route loops one of the ten sections; a canon route runs the canon from any one of the ten section starts. Before a canon run the player chooses whether it *finishes* at Revelation or *wraps* into Genesis and continues. Section route = endless laps. Canon route = endless, or finite by choice.
+
+**A beat.** Three lanes, one gate per lane, one row arriving at a time, scrolling toward the player, exactly one correct book on screen. Everything moves: a single `translateY` per gate, one overlap test.
+
+**Correct pick.** The run advances; speed climbs a little, decelerating toward a ceiling (curve and ceiling are prototyping numbers, not spec numbers). Score for the gate is its base value multiplied by the current speed, so speed — not endurance — is what a board ranks.
+
+**Wrong pick — a bounce.** The row does not advance and no book is skipped, so the canon can never be passed over and the run cannot teach a wrong order. Costs one life and the speed earned so far. After one bounce the correct gate is marked and the player taps it to continue: the price is a life and the speed, the lesson is the name. Three lives, run ends at zero. No timer, no lap limit, no "you finished" ending. The end-of-run screen lists every book that bounced, in order.
+
+**Start boost.** Earned, not offered: run a route clean and the next run on that route starts boosted. One boolean per route in local storage.
+
+**Distractors.** Two other books from the answer's own section, never the same pair twice in a row, never the answer twice.
+
+**Known hole in the distractor rule.** Acts and Revelation are sections of exactly one book, so "two from the same section" is unsatisfiable there; the Gospels hold only four books, so the same pair recurs quickly. Fallback: where a section holds fewer than three books, take the nearest books by canon position from the adjoining section (Acts pulls from John/ Romans; Revelation from Jude/ Genesis) — position-based, so the choice is still about where a book sits, not about which section it belongs to.
+
+**Open, deliberately:** the numeric shape of the speed curve, its ceiling, and whether a bounce returns speed to the run's start (including any boost) or to zero-gain base — all prototyping findings.
