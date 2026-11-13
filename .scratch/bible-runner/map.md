@@ -19,6 +19,7 @@ A spec in this repo a build session can execute without making a new decision: t
 ## Decisions so far
 
 - [Build the localized content table](issues/03-task-content-table.md): 66 rows in `src/content/books.json` with one NWT name per locale, order/section/chapters, checked by `npm run check:content` (no two books may share a name in a locale).
+- [Who translates, and what happens when a string is missing](issues/06-i18n-policy.md): English-only development, translation as a release gate, no fallback (a locale ships complete or not at all), and **routes labelled by book range** so the game invents no vocabulary.
 - [Local scoreboard: entries, names, and when it prompts](issues/09-scoreboard.md): six boards (one per route), top 10, names for a shared PC, score = 100 × speed per gate rounded, and boards carry the speed-curve version so retuning wipes them honestly.
 - [Pin the Book Order run loop](issues/04-mode-1-loop.md): 3 lanes, one correct of three, 3 lives, and a wrong pick *bounces* — no book can be skipped, so order is never broken; speed climbs to a ceiling and multiplies score; start boost earned per route.
 - [NWT book names per locale](issues/02-research-nwt-names.md): all 66 captured for en/nl/ru/ka; names diverge badly from common usage (Georgian ~29, Russian 6 + all 21 NT), so what a gate prints is its own ticket; two Noto families required, not one.

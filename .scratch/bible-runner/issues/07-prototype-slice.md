@@ -6,7 +6,7 @@ Blocked by:
 
 ## Question
 
-Build the slice: one section (Gospels is the easiest to verify), gate choice, three lives, all four locales for that section, ugly on purpose. The scoreboard is deliberately absent here — a name prompt does not help answer whether the loop is fun.
+Build the slice: one section (Gospels is the easiest to verify), gate choice, three lives, **English only** ([the i18n policy](06-i18n-policy.md) makes translation a release gate, so the slice never touches it), ugly on purpose. The scoreboard is deliberately absent here — a name prompt does not help answer whether the loop is fun.
 
 Its job is to answer "is this fun for sixty seconds?" — not to look good, not to cover all ten sections, not to handle bookmarks. Throw it away if the loop is wrong; keep it if it is right.
 
