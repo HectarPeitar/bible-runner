@@ -6,7 +6,7 @@ Blocked by: 10
 
 ## Question
 
-Produce the content table itself, in the stack the research ticket picks: 66 rows carrying order (1–66), testament, section, chapter count, aliases, and `names` keyed by locale (en, nl, ru, ka) — all four locales complete on every row, no row leaning on fallback.
+Produce the content table itself, in the stack the research ticket picks: 66 rows carrying order (1–66), testament, section, chapter count, aliases, and `names` keyed by locale (en, nl, ru, ka) — the **NWT name is the canonical display name**, since the game prints NWT naming exactly, and the common name is an alias shown only where the reveal policy says so — all four locales complete on every row, no row leaning on fallback.
 
 Build the *order and section* data from a public-domain Bible — **never transcribe jw.org**, whose Terms of Use forbid shipping site text in an application — and use jw.org only as a manual NWT spelling cross-check, with that provenance written down in the repo. Ship the aliases the research marked mandatory (Russian and Georgian hard conflicts, `მეორე რჯული` above all) — they are what the after-miss card shows.
 
