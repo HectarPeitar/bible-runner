@@ -21,7 +21,9 @@ Pin the loop precisely enough to build, in words rather than code.
 - **Three lives.** A wrong gate costs a life *and* the speed gained so far. The run ends at zero lives — no timer, no lap limit, no "you finished" ending.
 - **Bounce, don't skip.** A wrong pick does not advance the run: the same three options return and the correct one must still be picked. The canon is never passed over, so a run cannot teach a wrong order.
 - **Speed curve**: climbing, decelerating toward a ceiling — fast at first, harder to gain near the top. The ceiling is set during prototyping, not now.
-- **Start boost** exists for a player who can run a whole route clean.
+- **Start boost**, earned: run a route clean and the next run on that route offers one. Not a menu toggle.
+- **A bounce teaches**: after one bounce the correct gate is marked and you tap it to continue — a life and the speed earned are the price, the name is the lesson. The end-of-run screen lists every book that bounced, in order.
+- **Two scoreboard shapes**: the canon route's endless runs share the canon board; a run that stops at Revelation earns a "canon complete" marker instead of a score.
 
 Still to pin:
 
