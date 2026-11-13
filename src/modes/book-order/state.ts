@@ -5,6 +5,7 @@ import { LANES, LIVES, START_SPEED, climbSpeed, rowTravelMs } from './rules';
 import {
   CANON_FIRST_BOOK,
   CANON_LAST_BOOK,
+  boardOf,
   firstBookOfRoute,
   firstBookOfSection,
   nextBookOnRoute,
@@ -27,6 +28,8 @@ export type BookOrderState = {
   readonly gates: readonly number[];
   readonly lives: number;
   readonly speed: number;
+  /** `100 × Speed` per correct Gate, rounded and summed; a complete Run does not report it. */
+  readonly score: number;
   /** A Bounce marked the correct Gate; only tapping it continues the Run. */
   readonly marked: boolean;
   /** Distractor pairs already shown, so a pair does not repeat within a Run. */
@@ -150,6 +153,7 @@ export function createRun(options: RunOptions, locale: Locale): BookOrderState {
     gates: [],
     lives: LIVES,
     speed: START_SPEED,
+    score: 0,
     marked: false,
     usedPairs: [],
     review: [],
@@ -193,7 +197,9 @@ export function advance(
 
   if (pickedLane !== null) {
     if (state.gates[pickedLane] === state.answer) {
-      return passGate({ ...state, speed: climbSpeed(state.speed) });
+      // The Gate is worth the Speed it arrived at, not the Speed it earns.
+      const score = state.score + Math.round(state.speed * 100);
+      return passGate({ ...state, speed: climbSpeed(state.speed), score });
     }
     // A Bounce: the row stays, one Life goes, the Speed built so far is lost.
     const lives = state.lives - 1;
@@ -212,5 +218,11 @@ export function result(state: BookOrderState): RunResult {
   const review: ReviewItem[] = [...state.review]
     .sort((a, b) => a - b)
     .map((order) => ({ order, name: BOOKS[order - 1].names[state.locale] }));
-  return { over: state.over, complete: state.complete, review };
+  return {
+    over: state.over,
+    complete: state.complete,
+    score: state.complete ? 0 : state.score,
+    board: state.complete ? null : boardOf(state.route),
+    review,
+  };
 }
