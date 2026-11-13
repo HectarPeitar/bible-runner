@@ -9,14 +9,14 @@ A spec in this repo a build session can execute without making a new decision: t
 - **Domain**: Bible book order, taught from the New World Translation's canon and naming (Jehovah's Witnesses). NWT is a 66-book canon in Protestant order. Book *names and order only* — never NWT text, footnotes, or study material. Vocabulary in `GLOSSARY.md`.
 - **Locales**: en, nl, ru, ka today, more later — so book names are locale data in one table, never constants in code. The interface language follows the book-name language; chosen by a picker in the shell, defaulting to `navigator.language`. Fonts must cover Latin, Cyrillic, and Georgian (Mkhedruli).
 - **Standing preferences**: browser-first static game — no backend, no accounts, no paid services. Mobile means web, not app stores. **Every dependency must be free and open-source with a permissive license**; no paid or closed packages, no proprietary SDKs or assets. Our own code MIT, public repo, GitHub Pages. Beginner game developer: boring and small beats clever.
-- **Architecture leanings**: shared shell (title → mode picker → run → result) plus a `Mode` interface; exactly one mode registered, no plugin registry. No game engine for mode 1 unless the stack research says otherwise.
+- **Architecture leanings**: shared shell (title → mode picker → run → result) plus a `Mode` interface; exactly one mode registered, no plugin registry. Stack locked: TypeScript + Vite + DOM/CSS, no engine — pure game core behind a `render(state)` function, so an engine later is a renderer swap.
 - **Scoreboard**: local only, with player names entered at the end of a run and remembered for next time. No server, no accounts, no sync — the whole board lives in the browser.
 - **Skills each session should consult**: `grilling` and `domain-modeling` for HITL tickets, `research` for AFK ones, `prototype` for the slice, `tdd` and `codebase-design` for build sessions. Decisions expensive to reverse go in `docs/adr/`.
 - **Appetite**: a couple of weeks of evenings. The bar is not "finished" but "genuinely want to play", so the prototype ticket matters more than the last 20% of polish.
 
 ## Decisions so far
 
-<!-- one line per resolved ticket, linking to the ticket that holds the detail -->
+- [Stack: what mode 1 is built in](issues/01-research-stack.md): TypeScript + Vite + DOM/CSS, no engine — CSS per-character font fallback is what makes four locales cheap; Kaplay runner-up, switch at sprites/particles/audio.
 
 ## Not yet specified
 
