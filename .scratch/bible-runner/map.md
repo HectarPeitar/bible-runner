@@ -27,6 +27,7 @@ A spec in this repo a build session can execute without making a new decision: t
 - [Stack: what mode 1 is built in](issues/01-research-stack.md): TypeScript + Vite + DOM/CSS, no engine — CSS per-character font fallback is what makes four locales cheap; Kaplay runner-up, switch at sprites/particles/audio.
 
 - [Assemble the spec](issues/08-task-spec-assembly.md): [`.scratch/bible-runner/spec.md`](spec.md), ready-for-agent. Written before the slice on the operator's call; the tuning numbers are the spec's one declared open end, confined to the Rules module.
+- **Build tickets issued**: the spec is cut into six vertical slices, [`11`](issues/11-a-run-you-can-play.md) → [`16`](issues/16-set-the-numbers-by-playing.md). Frontier is `11`: a playable Run on the Gospels Section. `07` was absorbed rather than duplicated — its build half is `11`, its verdict half is `16`.
 
 ## Not yet specified
 
