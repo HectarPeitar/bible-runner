@@ -1,0 +1,728 @@
+[
+  {
+    "order": 1,
+    "section": "law",
+    "chapters": 50,
+    "names": {
+      "en": "Genesis",
+      "nl": "Genesis",
+      "ru": "Бытие",
+      "ka": "დაბადება"
+    }
+  },
+  {
+    "order": 2,
+    "section": "law",
+    "chapters": 40,
+    "names": {
+      "en": "Exodus",
+      "nl": "Exodus",
+      "ru": "Исход",
+      "ka": "გამოსვლა"
+    }
+  },
+  {
+    "order": 3,
+    "section": "law",
+    "chapters": 27,
+    "names": {
+      "en": "Leviticus",
+      "nl": "Leviticus",
+      "ru": "Левит",
+      "ka": "ლევიანები"
+    }
+  },
+  {
+    "order": 4,
+    "section": "law",
+    "chapters": 36,
+    "names": {
+      "en": "Numbers",
+      "nl": "Numeri",
+      "ru": "Числа",
+      "ka": "რიცხვები"
+    }
+  },
+  {
+    "order": 5,
+    "section": "law",
+    "chapters": 34,
+    "names": {
+      "en": "Deuteronomy",
+      "nl": "Deuteronomium",
+      "ru": "Второзаконие",
+      "ka": "კანონი"
+    }
+  },
+  {
+    "order": 6,
+    "section": "history",
+    "chapters": 24,
+    "names": {
+      "en": "Joshua",
+      "nl": "Jozua",
+      "ru": "Иисус Навин",
+      "ka": "იესო ნავეს ძე"
+    }
+  },
+  {
+    "order": 7,
+    "section": "history",
+    "chapters": 21,
+    "names": {
+      "en": "Judges",
+      "nl": "Rechters",
+      "ru": "Судей",
+      "ka": "მსაჯულები"
+    }
+  },
+  {
+    "order": 8,
+    "section": "history",
+    "chapters": 4,
+    "names": {
+      "en": "Ruth",
+      "nl": "Ruth",
+      "ru": "Руфь",
+      "ka": "რუთი"
+    }
+  },
+  {
+    "order": 9,
+    "section": "history",
+    "chapters": 31,
+    "names": {
+      "en": "1 Samuel",
+      "nl": "1 Samuël",
+      "ru": "1 Самуила",
+      "ka": "1 სამუელი"
+    }
+  },
+  {
+    "order": 10,
+    "section": "history",
+    "chapters": 24,
+    "names": {
+      "en": "2 Samuel",
+      "nl": "2 Samuël",
+      "ru": "2 Самуила",
+      "ka": "2 სამუელი"
+    }
+  },
+  {
+    "order": 11,
+    "section": "history",
+    "chapters": 22,
+    "names": {
+      "en": "1 Kings",
+      "nl": "1 Koningen",
+      "ru": "1 Царей",
+      "ka": "1 მეფეები"
+    }
+  },
+  {
+    "order": 12,
+    "section": "history",
+    "chapters": 25,
+    "names": {
+      "en": "2 Kings",
+      "nl": "2 Koningen",
+      "ru": "2 Царей",
+      "ka": "2 მეფეები"
+    }
+  },
+  {
+    "order": 13,
+    "section": "history",
+    "chapters": 29,
+    "names": {
+      "en": "1 Chronicles",
+      "nl": "1 Kronieken",
+      "ru": "1 Летопись",
+      "ka": "1 მატიანე"
+    }
+  },
+  {
+    "order": 14,
+    "section": "history",
+    "chapters": 36,
+    "names": {
+      "en": "2 Chronicles",
+      "nl": "2 Kronieken",
+      "ru": "2 Летопись",
+      "ka": "2 მატიანე"
+    }
+  },
+  {
+    "order": 15,
+    "section": "history",
+    "chapters": 10,
+    "names": {
+      "en": "Ezra",
+      "nl": "Ezra",
+      "ru": "Ездра",
+      "ka": "ეზრა"
+    }
+  },
+  {
+    "order": 16,
+    "section": "history",
+    "chapters": 13,
+    "names": {
+      "en": "Nehemiah",
+      "nl": "Nehemia",
+      "ru": "Неемия",
+      "ka": "ნეემია"
+    }
+  },
+  {
+    "order": 17,
+    "section": "history",
+    "chapters": 10,
+    "names": {
+      "en": "Esther",
+      "nl": "Esther",
+      "ru": "Эсфирь",
+      "ka": "ესთერი"
+    }
+  },
+  {
+    "order": 18,
+    "section": "wisdom",
+    "chapters": 42,
+    "names": {
+      "en": "Job",
+      "nl": "Job",
+      "ru": "Иов",
+      "ka": "იობი"
+    }
+  },
+  {
+    "order": 19,
+    "section": "wisdom",
+    "chapters": 150,
+    "names": {
+      "en": "Psalms",
+      "nl": "Psalmen",
+      "ru": "Псалмы",
+      "ka": "ფსალმუნები"
+    }
+  },
+  {
+    "order": 20,
+    "section": "wisdom",
+    "chapters": 31,
+    "names": {
+      "en": "Proverbs",
+      "nl": "Spreuken",
+      "ru": "Притчи",
+      "ka": "იგავები"
+    }
+  },
+  {
+    "order": 21,
+    "section": "wisdom",
+    "chapters": 12,
+    "names": {
+      "en": "Ecclesiastes",
+      "nl": "Prediker",
+      "ru": "Экклезиаст",
+      "ka": "ეკლესიასტე"
+    }
+  },
+  {
+    "order": 22,
+    "section": "wisdom",
+    "chapters": 8,
+    "names": {
+      "en": "Song of Solomon",
+      "nl": "Hooglied",
+      "ru": "Песня Соломона",
+      "ka": "ქებათა ქება"
+    }
+  },
+  {
+    "order": 23,
+    "section": "major-prophets",
+    "chapters": 66,
+    "names": {
+      "en": "Isaiah",
+      "nl": "Jesaja",
+      "ru": "Исайя",
+      "ka": "ესაია"
+    }
+  },
+  {
+    "order": 24,
+    "section": "major-prophets",
+    "chapters": 52,
+    "names": {
+      "en": "Jeremiah",
+      "nl": "Jeremia",
+      "ru": "Иеремия",
+      "ka": "იერემია"
+    }
+  },
+  {
+    "order": 25,
+    "section": "major-prophets",
+    "chapters": 5,
+    "names": {
+      "en": "Lamentations",
+      "nl": "Klaagliederen",
+      "ru": "Плач Иеремии",
+      "ka": "გოდება"
+    }
+  },
+  {
+    "order": 26,
+    "section": "major-prophets",
+    "chapters": 48,
+    "names": {
+      "en": "Ezekiel",
+      "nl": "Ezechiël",
+      "ru": "Иезекииль",
+      "ka": "ეზეკიელი"
+    }
+  },
+  {
+    "order": 27,
+    "section": "major-prophets",
+    "chapters": 12,
+    "names": {
+      "en": "Daniel",
+      "nl": "Daniël",
+      "ru": "Даниил",
+      "ka": "დანიელი"
+    }
+  },
+  {
+    "order": 28,
+    "section": "minor-prophets",
+    "chapters": 14,
+    "names": {
+      "en": "Hosea",
+      "nl": "Hosea",
+      "ru": "Осия",
+      "ka": "ოსია"
+    }
+  },
+  {
+    "order": 29,
+    "section": "minor-prophets",
+    "chapters": 3,
+    "names": {
+      "en": "Joel",
+      "nl": "Joël",
+      "ru": "Иоиль",
+      "ka": "იოელი"
+    }
+  },
+  {
+    "order": 30,
+    "section": "minor-prophets",
+    "chapters": 9,
+    "names": {
+      "en": "Amos",
+      "nl": "Amos",
+      "ru": "Амос",
+      "ka": "ამოსი"
+    }
+  },
+  {
+    "order": 31,
+    "section": "minor-prophets",
+    "chapters": 1,
+    "names": {
+      "en": "Obadiah",
+      "nl": "Obadja",
+      "ru": "Авдий",
+      "ka": "აბდია"
+    }
+  },
+  {
+    "order": 32,
+    "section": "minor-prophets",
+    "chapters": 4,
+    "names": {
+      "en": "Jonah",
+      "nl": "Jona",
+      "ru": "Иона",
+      "ka": "იონა"
+    }
+  },
+  {
+    "order": 33,
+    "section": "minor-prophets",
+    "chapters": 7,
+    "names": {
+      "en": "Micah",
+      "nl": "Micha",
+      "ru": "Михей",
+      "ka": "მიქა"
+    }
+  },
+  {
+    "order": 34,
+    "section": "minor-prophets",
+    "chapters": 3,
+    "names": {
+      "en": "Nahum",
+      "nl": "Nahum",
+      "ru": "Наум",
+      "ka": "ნაუმი"
+    }
+  },
+  {
+    "order": 35,
+    "section": "minor-prophets",
+    "chapters": 3,
+    "names": {
+      "en": "Habakkuk",
+      "nl": "Habakuk",
+      "ru": "Аввакум",
+      "ka": "აბაკუმი"
+    }
+  },
+  {
+    "order": 36,
+    "section": "minor-prophets",
+    "chapters": 3,
+    "names": {
+      "en": "Zephaniah",
+      "nl": "Zefanja",
+      "ru": "Софония",
+      "ka": "სოფონია"
+    }
+  },
+  {
+    "order": 37,
+    "section": "minor-prophets",
+    "chapters": 2,
+    "names": {
+      "en": "Haggai",
+      "nl": "Haggaï",
+      "ru": "Аггей",
+      "ka": "ანგია"
+    }
+  },
+  {
+    "order": 38,
+    "section": "minor-prophets",
+    "chapters": 14,
+    "names": {
+      "en": "Zechariah",
+      "nl": "Zacharia",
+      "ru": "Захария",
+      "ka": "ზაქარია"
+    }
+  },
+  {
+    "order": 39,
+    "section": "minor-prophets",
+    "chapters": 4,
+    "names": {
+      "en": "Malachi",
+      "nl": "Maleachi",
+      "ru": "Малахия",
+      "ka": "მალაქია"
+    }
+  },
+  {
+    "order": 40,
+    "section": "gospels",
+    "chapters": 28,
+    "names": {
+      "en": "Matthew",
+      "nl": "Mattheüs",
+      "ru": "Матфея",
+      "ka": "მათე"
+    }
+  },
+  {
+    "order": 41,
+    "section": "gospels",
+    "chapters": 16,
+    "names": {
+      "en": "Mark",
+      "nl": "Markus",
+      "ru": "Марка",
+      "ka": "მარკოზი"
+    }
+  },
+  {
+    "order": 42,
+    "section": "gospels",
+    "chapters": 24,
+    "names": {
+      "en": "Luke",
+      "nl": "Lukas",
+      "ru": "Луки",
+      "ka": "ლუკა"
+    }
+  },
+  {
+    "order": 43,
+    "section": "gospels",
+    "chapters": 21,
+    "names": {
+      "en": "John",
+      "nl": "Johannes",
+      "ru": "Иоанна",
+      "ka": "იოანე"
+    }
+  },
+  {
+    "order": 44,
+    "section": "acts",
+    "chapters": 28,
+    "names": {
+      "en": "Acts",
+      "nl": "Handelingen",
+      "ru": "Деяния",
+      "ka": "საქმეები"
+    }
+  },
+  {
+    "order": 45,
+    "section": "pauline",
+    "chapters": 16,
+    "names": {
+      "en": "Romans",
+      "nl": "Romeinen",
+      "ru": "Римлянам",
+      "ka": "რომაელები"
+    }
+  },
+  {
+    "order": 46,
+    "section": "pauline",
+    "chapters": 16,
+    "names": {
+      "en": "1 Corinthians",
+      "nl": "1 Korinthiërs",
+      "ru": "1 Коринфянам",
+      "ka": "1 კორინთელები"
+    }
+  },
+  {
+    "order": 47,
+    "section": "pauline",
+    "chapters": 13,
+    "names": {
+      "en": "2 Corinthians",
+      "nl": "2 Korinthiërs",
+      "ru": "2 Коринфянам",
+      "ka": "2 კორინთელები"
+    }
+  },
+  {
+    "order": 48,
+    "section": "pauline",
+    "chapters": 6,
+    "names": {
+      "en": "Galatians",
+      "nl": "Galaten",
+      "ru": "Галатам",
+      "ka": "გალატელები"
+    }
+  },
+  {
+    "order": 49,
+    "section": "pauline",
+    "chapters": 6,
+    "names": {
+      "en": "Ephesians",
+      "nl": "Efeziërs",
+      "ru": "Эфесянам",
+      "ka": "ეფესოელები"
+    }
+  },
+  {
+    "order": 50,
+    "section": "pauline",
+    "chapters": 4,
+    "names": {
+      "en": "Philippians",
+      "nl": "Filippenzen",
+      "ru": "Филиппийцам",
+      "ka": "ფილიპელები"
+    }
+  },
+  {
+    "order": 51,
+    "section": "pauline",
+    "chapters": 4,
+    "names": {
+      "en": "Colossians",
+      "nl": "Kolossenzen",
+      "ru": "Колоссянам",
+      "ka": "კოლოსელები"
+    }
+  },
+  {
+    "order": 52,
+    "section": "pauline",
+    "chapters": 5,
+    "names": {
+      "en": "1 Thessalonians",
+      "nl": "1 Thessalonicenzen",
+      "ru": "1 Фессалоникийцам",
+      "ka": "1 თესალონიკელები"
+    }
+  },
+  {
+    "order": 53,
+    "section": "pauline",
+    "chapters": 3,
+    "names": {
+      "en": "2 Thessalonians",
+      "nl": "2 Thessalonicenzen",
+      "ru": "2 Фессалоникийцам",
+      "ka": "2 თესალონიკელები"
+    }
+  },
+  {
+    "order": 54,
+    "section": "pauline",
+    "chapters": 6,
+    "names": {
+      "en": "1 Timothy",
+      "nl": "1 Timotheüs",
+      "ru": "1 Тимофею",
+      "ka": "1 ტიმოთე"
+    }
+  },
+  {
+    "order": 55,
+    "section": "pauline",
+    "chapters": 4,
+    "names": {
+      "en": "2 Timothy",
+      "nl": "2 Timotheüs",
+      "ru": "2 Тимофею",
+      "ka": "2 ტიმოთე"
+    }
+  },
+  {
+    "order": 56,
+    "section": "pauline",
+    "chapters": 3,
+    "names": {
+      "en": "Titus",
+      "nl": "Titus",
+      "ru": "Титу",
+      "ka": "ტიტე"
+    }
+  },
+  {
+    "order": 57,
+    "section": "pauline",
+    "chapters": 1,
+    "names": {
+      "en": "Philemon",
+      "nl": "Filemon",
+      "ru": "Филимону",
+      "ka": "ფილიმონი"
+    }
+  },
+  {
+    "order": 58,
+    "section": "pauline",
+    "chapters": 13,
+    "names": {
+      "en": "Hebrews",
+      "nl": "Hebreeën",
+      "ru": "Евреям",
+      "ka": "ებრაელები"
+    }
+  },
+  {
+    "order": 59,
+    "section": "general",
+    "chapters": 5,
+    "names": {
+      "en": "James",
+      "nl": "Jakobus",
+      "ru": "Иакова",
+      "ka": "იაკობი"
+    }
+  },
+  {
+    "order": 60,
+    "section": "general",
+    "chapters": 5,
+    "names": {
+      "en": "1 Peter",
+      "nl": "1 Petrus",
+      "ru": "1 Петра",
+      "ka": "1 პეტრე"
+    }
+  },
+  {
+    "order": 61,
+    "section": "general",
+    "chapters": 3,
+    "names": {
+      "en": "2 Peter",
+      "nl": "2 Petrus",
+      "ru": "2 Петра",
+      "ka": "2 პეტრე"
+    }
+  },
+  {
+    "order": 62,
+    "section": "general",
+    "chapters": 5,
+    "names": {
+      "en": "1 John",
+      "nl": "1 Johannes",
+      "ru": "1 Иоанна",
+      "ka": "1 იოანე"
+    }
+  },
+  {
+    "order": 63,
+    "section": "general",
+    "chapters": 1,
+    "names": {
+      "en": "2 John",
+      "nl": "2 Johannes",
+      "ru": "2 Иоанна",
+      "ka": "2 იოანე"
+    }
+  },
+  {
+    "order": 64,
+    "section": "general",
+    "chapters": 1,
+    "names": {
+      "en": "3 John",
+      "nl": "3 Johannes",
+      "ru": "3 Иоанна",
+      "ka": "3 იოანე"
+    }
+  },
+  {
+    "order": 65,
+    "section": "general",
+    "chapters": 1,
+    "names": {
+      "en": "Jude",
+      "nl": "Judas",
+      "ru": "Иуды",
+      "ka": "იუდა"
+    }
+  },
+  {
+    "order": 66,
+    "section": "revelation",
+    "chapters": 22,
+    "names": {
+      "en": "Revelation",
+      "nl": "Openbaring",
+      "ru": "Откровение",
+      "ka": "გამოცხადება"
+    }
+  }
+]
