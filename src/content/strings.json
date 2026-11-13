@@ -23,6 +23,8 @@
     "nameLabel": "Name",
     "saveScore": "Save score",
     "staysOnDevice": "Names and scores stay on this device.",
+    "startBoostPlay": "Start with boost",
+    "startBoostEarned": "No Bounces: a Start boost is ready on this Route.",
     "back": "Back",
     "missedBooks": "Missed Books, in canon order:",
     "nothingMissed": "Nothing missed.",

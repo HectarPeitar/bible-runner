@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BOOKS, SECTION_ORDER, type SectionId } from '../../content/books';
 import { BOOK_ORDER } from './index';
 import type { BookOrderState } from './state';
-import { SPEED_CEILING } from './rules';
+import { SPEED_CEILING, START_BOOST_SPEED, START_SPEED } from './rules';
 import { ROUTES, routeBooks, routeLabel, sectionLabel, type CourseId } from './routes';
 
 const gospels = BOOKS.filter((book) => book.section === 'gospels');
@@ -344,6 +344,105 @@ describe('Book Order: the score and its board', () => {
       'greek-scriptures',
     ]);
     expect(BOOK_ORDER.result(canon('gospels')).board).toBe('canon');
+  });
+});
+
+describe('Book Order: the Start boost', () => {
+  /** A canon Run played clean to Revelation, sitting on the finish-or-wrap offer. */
+  const playToRevelation = (seed = 11): BookOrderState => {
+    let state = canon('general', seed);
+    while (state.answer !== BOOKS[BOOKS.length - 1].order) state = pass(state);
+    return pass(state);
+  };
+
+  it('a clean canon Run that finishes at Revelation earns a Start boost for its Route', () => {
+    const offered = playToRevelation();
+    expect(offered.offer).toBe('finish-or-wrap');
+    expect(BOOK_ORDER.result(offered).boostEarned).toBe(false);
+
+    const finished = BOOK_ORDER.result(finish(offered));
+    expect(finished.over).toBe(true);
+    expect(finished.boostEarned).toBe(true);
+  });
+
+  it('a Run that Bounced earns nothing, even when it reaches Revelation and finishes', () => {
+    let state = canon('general');
+    state = pass(pick(state, wrongLane(state)));
+    while (state.answer !== BOOKS[BOOKS.length - 1].order) state = pass(state);
+
+    expect(BOOK_ORDER.result(finish(pass(state))).boostEarned).toBe(false);
+  });
+
+  it('a Run that ends by losing the third Life earns nothing', () => {
+    let state = start();
+    for (let life = 0; life < 3; life += 1) {
+      state = pick(state, wrongLane(state));
+      if (life < 2) state = pass(state);
+    }
+
+    const result = BOOK_ORDER.result(state);
+    expect(result.over).toBe(true);
+    expect(result.boostEarned).toBe(false);
+  });
+
+  it('a clean lap of a Course finishes the Route, and the Run carries on', () => {
+    const route = 'isaiah-malachi';
+    const books = routeBooks(route);
+    let state = startCourse(route);
+
+    while (state.position !== books[books.length - 1]) {
+      expect(BOOK_ORDER.result(state).boostEarned).toBe(false);
+      state = pass(state);
+    }
+
+    expect(BOOK_ORDER.result(state).boostEarned).toBe(true);
+    expect(BOOK_ORDER.result(state).over).toBe(false);
+    expect(state.answer).toBe(books[0]);
+
+    expect(BOOK_ORDER.result(pass(state)).boostEarned).toBe(true);
+  });
+
+  it('a Course lap that Bounced earns nothing', () => {
+    const route = 'romans-jude';
+    const books = routeBooks(route);
+    let state = startCourse(route);
+    state = pass(pick(state, wrongLane(state)));
+    while (state.position !== books[books.length - 1]) state = pass(state);
+
+    expect(BOOK_ORDER.result(state).boostEarned).toBe(false);
+  });
+
+  it('accepting the boost starts the Run already moving, and declining starts it normal', () => {
+    const boosted = BOOK_ORDER.createRun(
+      { seed: 11, route: 'canon', start: 'gospels', startBoost: true },
+      'en',
+    );
+    const declined = BOOK_ORDER.createRun(
+      { seed: 11, route: 'canon', start: 'gospels', startBoost: false },
+      'en',
+    );
+
+    expect(declined.speed).toBe(START_SPEED);
+    expect(start().speed).toBe(START_SPEED);
+    expect(boosted.speed).toBe(START_BOOST_SPEED);
+    expect(boosted.gates).toEqual(start().gates);
+    expect(pass(boosted).speed).toBeGreaterThan(START_BOOST_SPEED);
+  });
+
+  it('two clean Runs do not stack into a bigger boost', () => {
+    const first = BOOK_ORDER.createRun({ seed: 3, route: 'romans-jude', startBoost: true }, 'en');
+    const second = BOOK_ORDER.createRun({ seed: 4, route: 'romans-jude', startBoost: true }, 'en');
+
+    expect(first.speed).toBe(START_BOOST_SPEED);
+    expect(second.speed).toBe(first.speed);
+  });
+
+  it('a Run that passed no Gate earns nothing for finishing at Revelation at once', () => {
+    const state = canon('revelation');
+    const finished = BOOK_ORDER.result(finish(state));
+
+    expect(finished.complete).toBe(true);
+    expect(finished.boostEarned).toBe(false);
   });
 });
 

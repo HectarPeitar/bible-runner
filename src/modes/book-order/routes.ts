@@ -85,6 +85,12 @@ export function firstBookOfRoute(route: RouteId): number {
   return route === 'canon' ? CANON_FIRST_BOOK : routeBooks(route)[0];
 }
 
+export function lastBookOfRoute(route: RouteId): number {
+  if (route === 'canon') return CANON_LAST_BOOK;
+  const books = routeBooks(route);
+  return books[books.length - 1];
+}
+
 /** The Book after `position` on the Route; a Course wraps to its first Book. */
 export function nextBookOnRoute(route: RouteId, position: number): number {
   if (route === 'canon') {
