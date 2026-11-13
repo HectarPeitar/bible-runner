@@ -1,13 +1,14 @@
 import { BOOKS, type Locale, type SectionId } from '../../content/books';
 import { nextRandom, type RandomState } from '../../platform/random';
 import type { Action, ReviewItem, RunOptions, RunResult } from '../types';
-import { LANES, LIVES, START_SPEED, climbSpeed, rowTravelMs } from './rules';
+import { LANES, LIVES, START_BOOST_SPEED, START_SPEED, climbSpeed, rowTravelMs } from './rules';
 import {
   CANON_FIRST_BOOK,
   CANON_LAST_BOOK,
   boardOf,
   firstBookOfRoute,
   firstBookOfSection,
+  lastBookOfRoute,
   nextBookOnRoute,
   type RouteId,
 } from './routes';
@@ -41,6 +42,8 @@ export type BookOrderState = {
   readonly offer: Offer | null;
   /** The Run finished at Revelation: a canon-complete Run, which never scores. */
   readonly complete: boolean;
+  /** The Run finished its Route with no Bounces: its Route has earned a Start boost. */
+  readonly boostEarned: boolean;
   readonly over: boolean;
 };
 
@@ -130,10 +133,16 @@ function passGate(state: BookOrderState): BookOrderState {
       offer: 'finish-or-wrap',
     });
   }
+  // A Course is finished by passing its last Book; it then wraps and the Run goes on.
+  const finishedLap =
+    state.route !== 'canon' &&
+    position === lastBookOfRoute(state.route) &&
+    state.review.length === 0;
   return beginRow({
     ...state,
     position,
     answer: nextBookOnRoute(state.route, position),
+    boostEarned: state.boostEarned || finishedLap,
   });
 }
 
@@ -152,7 +161,7 @@ export function createRun(options: RunOptions, locale: Locale): BookOrderState {
     answer: nextBookOnRoute(route, position),
     gates: [],
     lives: LIVES,
-    speed: START_SPEED,
+    speed: options.startBoost === true ? START_BOOST_SPEED : START_SPEED,
     score: 0,
     marked: false,
     usedPairs: [],
@@ -160,6 +169,7 @@ export function createRun(options: RunOptions, locale: Locale): BookOrderState {
     beatMs: 0,
     offer: null,
     complete: false,
+    boostEarned: false,
     over: false,
   };
 
@@ -179,7 +189,15 @@ export function advance(
 
   if (state.offer !== null) {
     if (action?.type === 'finish') {
-      return { ...state, offer: null, complete: true, over: true };
+      return {
+        ...state,
+        offer: null,
+        complete: true,
+        over: true,
+        // A Run that passed no Gate travelled no Route, so finishing on the offer
+        // a Run beginning at Revelation opens at once earns no Start boost.
+        boostEarned: state.review.length === 0 && state.score > 0,
+      };
     }
     if (action?.type === 'wrap') return { ...state, offer: null };
     return state;
@@ -223,6 +241,7 @@ export function result(state: BookOrderState): RunResult {
     complete: state.complete,
     score: state.complete ? 0 : state.score,
     board: state.complete ? null : boardOf(state.route),
+    boostEarned: state.boostEarned,
     review,
   };
 }

@@ -3,9 +3,13 @@
 // because persistence is a convenience and never a requirement.
 
 import { LOCALES, type Locale } from '../content/books';
+import { ROUTES, type RouteId } from '../modes/book-order/routes';
 import { BOARD_IDS, cleanName, type Board, type BoardId, type ScoreEntry } from './board';
 
 const KEY = 'bible-runner:v1';
+
+/** One Start boost per Route, marked ready by a clean finish and spent by a Run. */
+export type Boosts = Partial<Record<RouteId, true>>;
 
 export type Settings = {
   /** The Locale the player chose, or null before they have chosen one. */
@@ -14,9 +18,11 @@ export type Settings = {
   name: string;
   /** One entry per Route, keyed by board id; absent until a score is recorded on it. */
   boards: Partial<Record<BoardId, Board>>;
+  /** The Routes with a Start boost waiting to be offered; absent until one is earned. */
+  boosts: Boosts;
 };
 
-const NO_SETTINGS: Settings = { locale: null, name: '', boards: {} };
+const NO_SETTINGS: Settings = { locale: null, name: '', boards: {}, boosts: {} };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -62,14 +68,34 @@ export function loadSettings(): Settings {
         if (board !== null) boards[id] = board;
       }
     }
+    const boosts: Boosts = {};
+    if (isRecord(stored.boosts)) {
+      for (const route of ROUTES) {
+        if (stored.boosts[route] === true) boosts[route] = true;
+      }
+    }
     return {
       locale: isLocale(stored.locale) ? stored.locale : null,
       name: rememberedName(stored.name),
       boards,
+      boosts,
     };
   } catch {
     return NO_SETTINGS;
   }
+}
+
+/** A Start boost is waiting on this Route, until a Run of it accepts the boost. */
+export function boostReady(settings: Settings, route: RouteId): boolean {
+  return settings.boosts[route] === true;
+}
+
+/** Marks a Route's Start boost ready after a clean finish, or spends it when a Run accepts it. */
+export function setBoost(settings: Settings, route: RouteId, ready: boolean): Settings {
+  const boosts: Boosts = { ...settings.boosts };
+  if (ready) boosts[route] = true;
+  else delete boosts[route];
+  return { ...settings, boosts };
 }
 
 export function saveSettings(settings: Settings): void {

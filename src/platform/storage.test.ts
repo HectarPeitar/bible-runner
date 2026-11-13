@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { entriesOf, recordScore } from './board';
-import { loadSettings, saveSettings } from './storage';
+import { boostReady, loadSettings, saveSettings, setBoost } from './storage';
 
 const refusing = {
   getItem: (): never => {
@@ -29,23 +29,25 @@ describe('storage: one key, and a game that plays without it', () => {
     saveSettings({ ...loadSettings(), locale: 'en' });
 
     expect(loadSettings().locale).toBe('en');
-    expect(kept.get('bible-runner:v1')).toBe('{"locale":"en","name":"","boards":{}}');
+    expect(kept.get('bible-runner:v1')).toBe(
+      '{"locale":"en","name":"","boards":{},"boosts":{}}',
+    );
   });
 
   it('plays when the browser refuses storage', () => {
     vi.stubGlobal('localStorage', refusing);
 
-    expect(loadSettings()).toEqual({ locale: null, name: '', boards: {} });
-    expect(() => saveSettings({ locale: 'en', name: '', boards: {} })).not.toThrow();
+    expect(loadSettings()).toEqual({ locale: null, name: '', boards: {}, boosts: {} });
+    expect(() => saveSettings({ locale: 'en', name: '', boards: {}, boosts: {} })).not.toThrow();
   });
 
   it('ignores a stored object it did not write', () => {
     vi.stubGlobal('localStorage', {
-      getItem: () => '{"locale":42,"name":null,"boards":[]}',
+      getItem: () => '{"locale":42,"name":null,"boards":[],"boosts":"yes"}',
       setItem: () => undefined,
     });
 
-    expect(loadSettings()).toEqual({ locale: null, name: '', boards: {} });
+    expect(loadSettings()).toEqual({ locale: null, name: '', boards: {}, boosts: {} });
   });
 });
 
@@ -60,7 +62,7 @@ describe('storage: the boards it keeps', () => {
     });
 
     const board = recordScore(undefined, 1, { name: 'Sam', score: 700, at: 1 });
-    saveSettings({ locale: 'en', name: 'Sam', boards: { canon: board } });
+    saveSettings({ locale: 'en', name: 'Sam', boards: { canon: board }, boosts: {} });
 
     const loaded = loadSettings();
     expect(loaded.name).toBe('Sam');
@@ -106,5 +108,63 @@ describe('storage: the boards it keeps', () => {
     expect(() => saveSettings(next)).not.toThrow();
     expect(entriesOf(next.boards.canon, 1).map((entry) => entry.score)).toEqual([700]);
     expect(loadSettings().boards.canon).toBeUndefined();
+  });
+});
+
+describe('storage: one Start boost per Route', () => {
+  const writable = (): Map<string, string> => {
+    const kept = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => kept.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        kept.set(key, value);
+      },
+    });
+    return kept;
+  };
+
+  it('keeps a clean Route’s boost across a reload until a Run spends it', () => {
+    writable();
+    saveSettings(setBoost(loadSettings(), 'canon', true));
+    expect(boostReady(loadSettings(), 'canon')).toBe(true);
+
+    saveSettings(setBoost(loadSettings(), 'canon', false));
+    expect(boostReady(loadSettings(), 'canon')).toBe(false);
+  });
+
+  it('never offers a Route’s boost on another Route', () => {
+    writable();
+    saveSettings(setBoost(loadSettings(), 'isaiah-malachi', true));
+
+    expect(boostReady(loadSettings(), 'isaiah-malachi')).toBe(true);
+    expect(boostReady(loadSettings(), 'canon')).toBe(false);
+    expect(boostReady(loadSettings(), 'romans-jude')).toBe(false);
+  });
+
+  it('trusts no stored boost: anything but a true is no boost, and a Route it does not know drops out', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () =>
+        JSON.stringify({
+          locale: 'en',
+          name: 'Sam',
+          boards: {},
+          boosts: { canon: 'yes', 'romans-jude': 1, 'isaiah-malachi': true, nope: true },
+        }),
+      setItem: () => undefined,
+    });
+
+    const settings = loadSettings();
+    expect(boostReady(settings, 'canon')).toBe(false);
+    expect(boostReady(settings, 'romans-jude')).toBe(false);
+    expect(boostReady(settings, 'isaiah-malachi')).toBe(true);
+    expect(Object.keys(settings.boosts)).toEqual(['isaiah-malachi']);
+  });
+
+  it('records the second clean Route as the same one boost, never a bigger one', () => {
+    const kept = writable();
+    saveSettings(setBoost(setBoost(loadSettings(), 'canon', true), 'canon', true));
+
+    expect(loadSettings().boosts).toEqual({ canon: true });
+    expect(kept.get('bible-runner:v1')).toContain('"boosts":{"canon":true}');
   });
 });

@@ -2,7 +2,7 @@ import { SECTION_ORDER, type Locale, type SectionId } from '../content/books';
 import { LOCALES_OFFERED, fill, resolveLocale, strings } from '../content/strings';
 import { BOOK_ORDER } from '../modes/book-order';
 import { SPEED_CURVE } from '../modes/book-order/rules';
-import { ROUTES, boardOf, routeLabel, sectionLabel } from '../modes/book-order/routes';
+import { ROUTES, boardOf, routeLabel, sectionLabel, type RouteId } from '../modes/book-order/routes';
 import type { BookOrderState } from '../modes/book-order/state';
 import type { Action, RunOptions } from '../modes/types';
 import {
@@ -15,7 +15,7 @@ import {
   type ScoreEntry,
 } from '../platform/board';
 import { startLoop } from '../platform/loop';
-import { loadSettings, saveSettings } from '../platform/storage';
+import { loadSettings, boostReady, saveSettings, setBoost } from '../platform/storage';
 
 export function startShell(app: HTMLElement): void {
   let settings = loadSettings();
@@ -67,6 +67,29 @@ export function startShell(app: HTMLElement): void {
   const boardEntries = (board: BoardId): readonly ScoreEntry[] =>
     entriesOf(settings.boards[board], SPEED_CURVE);
 
+  /**
+   * A Route whose last clean Run earned a Start boost offers it beside the normal
+   * start, so the offer is visible before the Run and can be declined.
+   */
+  const boostChoice = (
+    route: RouteId,
+    locale: Locale,
+    options: () => RunOptions,
+  ): HTMLButtonElement | null => {
+    if (!boostReady(settings, route)) return null;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'boost';
+    button.textContent = strings(locale).startBoostPlay;
+    button.addEventListener('click', () => {
+      // Spent by the Run that accepts it, never by being offered, and never twice.
+      settings = setBoost(settings, route, false);
+      saveSettings(settings);
+      showRun(options(), locale, true);
+    });
+    return button;
+  };
+
   const scoreList = (entries: readonly ScoreEntry[], locale: Locale): HTMLElement => {
     const copy = strings(locale);
     if (entries.length === 0) {
@@ -98,11 +121,16 @@ export function startShell(app: HTMLElement): void {
     courses.className = 'routes';
     for (const route of ROUTES) {
       if (route === 'canon') continue;
+      const row = document.createElement('div');
+      row.className = 'route';
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = routeLabel(route, locale);
       button.addEventListener('click', () => showRun({ seed: freshSeed(), route }, locale));
-      courses.append(button);
+      row.append(button);
+      const boost = boostChoice(route, locale, () => ({ seed: freshSeed(), route }));
+      if (boost !== null) row.append(boost);
+      courses.append(row);
     }
 
     const canon = document.createElement('div');
@@ -125,6 +153,12 @@ export function startShell(app: HTMLElement): void {
       showRun({ seed: freshSeed(), route: 'canon', start: section }, locale);
     });
     canon.append(canonLabel, start, begin);
+    const canonBoost = boostChoice('canon', locale, () => ({
+      seed: freshSeed(),
+      route: 'canon',
+      start: start.value as SectionId,
+    }));
+    if (canonBoost !== null) canon.append(canonBoost);
 
     const scores = document.createElement('button');
     scores.type = 'button';
@@ -217,11 +251,11 @@ export function startShell(app: HTMLElement): void {
     return form;
   };
 
-  const showRun = (options: RunOptions, locale: Locale): void => {
+  const showRun = (options: RunOptions, locale: Locale, startBoost = false): void => {
     const host = document.createElement('section');
     app.replaceChildren(host);
 
-    let state = BOOK_ORDER.createRun(options, locale);
+    let state = BOOK_ORDER.createRun({ ...options, startBoost }, locale);
     let pending: Action | null = null;
 
     startLoop((dtMs) => {
@@ -245,6 +279,10 @@ export function startShell(app: HTMLElement): void {
     markLocale(locale);
     const copy = strings(locale);
     const result = BOOK_ORDER.result(state);
+    if (result.boostEarned && !boostReady(settings, options.route)) {
+      settings = setBoost(settings, options.route, true);
+      saveSettings(settings);
+    }
     const title = document.createElement('h1');
     const caption = document.createElement('p');
     const missed = document.createElement('ol');
@@ -272,6 +310,13 @@ export function startShell(app: HTMLElement): void {
       if (!recorded && qualifies(boardEntries(board), result.score)) {
         screen.push(nameForm(state, options, locale, board, result.score));
       }
+    }
+
+    if (result.boostEarned) {
+      const note = document.createElement('p');
+      note.className = 'boost';
+      note.textContent = copy.startBoostEarned;
+      screen.push(note);
     }
 
     const again = document.createElement('button');

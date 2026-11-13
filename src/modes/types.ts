@@ -17,6 +17,8 @@ export type RunResult = {
   score: number;
   /** The board this Run scores on; null when it does not score at all. */
   board: BoardId | null;
+  /** The Run finished its Route with no Bounces: its Route has earned a Start boost. */
+  boostEarned: boolean;
   /** What the end screen lists, in the Mode's own words. */
   review: ReviewItem[];
 };
@@ -28,7 +30,7 @@ export type Action =
   | { type: 'wrap' };
 
 /** Everything a Run needs before it has state. */
-export type RunOptions = { seed: number } & (
+export type RunOptions = { seed: number; startBoost?: boolean } & (
   | { route: CourseId }
   | { route: 'canon'; start: SectionId }
 );
