@@ -58,6 +58,44 @@ else {
   });
 }
 
+// The interface strings, checked the same way: a Locale is offered only when its
+// table is complete, so nothing ever renders another Locale's words.
+const tables = JSON.parse(
+  readFileSync(new URL('../src/content/strings.json', import.meta.url), 'utf8'),
+);
+const english = tables.en;
+
+if (typeof english !== 'object' || english === null) {
+  fail('strings.json: no "en" table to define the keys');
+} else {
+  const keys = Object.keys(english);
+  if (keys.length === 0) fail('strings.json: the "en" table is empty');
+
+  for (const [locale, table] of Object.entries(tables)) {
+    if (!LOCALES.includes(locale)) fail(`strings.json: unknown Locale "${locale}"`);
+    if (typeof table !== 'object' || table === null) {
+      fail(`strings.json: "${locale}" is not a table`);
+      continue;
+    }
+    for (const key of keys) {
+      const value = table[key];
+      if (typeof value !== 'string' || value.trim() === '') {
+        fail(`strings ${locale}: no "${key}"`);
+      } else if (value !== value.trim()) {
+        fail(`strings ${locale}: "${key}" has stray whitespace "${value}"`);
+      }
+    }
+    for (const key of Object.keys(table)) {
+      if (!keys.includes(key)) fail(`strings ${locale}: "${key}" is not a string "en" has`);
+    }
+    // A Locale offered with interface strings but no Book names would print empty Gates.
+    const named =
+      Array.isArray(books) &&
+      books.every((book) => typeof book.names?.[locale] === 'string' && book.names[locale] !== '');
+    if (!named) fail(`strings ${locale}: ships without a Book name in all 66 rows`);
+  }
+}
+
 if (errors.length) {
   console.error(`content table: ${errors.length} problem(s)`);
   for (const error of errors) console.error(`  - ${error}`);
@@ -66,3 +104,4 @@ if (errors.length) {
 
 const sizes = SECTIONS.map((id) => `${id}=${books.filter((b) => b.section === id).length}`);
 console.log(`content table ok: 66 books, ${LOCALES.length} locales each, sections ${sizes.join(' ')}`);
+console.log(`interface strings ok: ${Object.keys(tables).join(', ')} complete`);

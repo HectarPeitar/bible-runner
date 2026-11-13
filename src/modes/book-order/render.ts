@@ -1,4 +1,5 @@
 import { BOOKS } from '../../content/books';
+import { fill, strings } from '../../content/strings';
 import type { Action } from '../types';
 import { CANON_FIRST_BOOK, CANON_LAST_BOOK } from './routes';
 import { rowTravelMs } from './rules';
@@ -6,8 +7,7 @@ import type { BookOrderState } from './state';
 
 type View = {
   after: HTMLParagraphElement;
-  lives: HTMLSpanElement;
-  speed: HTMLSpanElement;
+  status: HTMLParagraphElement;
   row: HTMLDivElement;
   gates: HTMLButtonElement[];
   offer: HTMLDivElement;
@@ -24,11 +24,14 @@ export function render(
   dispatch: (action: Action) => void,
 ): void {
   const view = views.get(host) ?? createView(host, dispatch);
+  const copy = strings(state.locale);
   const name = (order: number): string => BOOKS[order - 1].names[state.locale];
 
-  view.after.textContent = `After ${name(state.position)}`;
-  view.lives.textContent = String(state.lives);
-  view.speed.textContent = state.speed.toFixed(1);
+  view.after.textContent = fill(copy.after, { book: name(state.position) });
+  view.status.textContent = fill(copy.status, {
+    lives: String(state.lives),
+    speed: state.speed.toFixed(1),
+  });
 
   const progress = Math.min(1, state.beatMs / rowTravelMs(state.speed));
   view.row.style.transform = `translateY(${Math.round((progress - 1) * 8)}rem)`;
@@ -43,9 +46,12 @@ export function render(
   view.offer.hidden = !offering;
   view.row.hidden = offering;
   if (offering) {
-    view.prompt.textContent = `You reached ${name(CANON_LAST_BOOK)}. Finish, or wrap into ${name(CANON_FIRST_BOOK)}?`;
-    view.finish.textContent = `Finish at ${name(CANON_LAST_BOOK)}`;
-    view.wrap.textContent = `Wrap into ${name(CANON_FIRST_BOOK)}`;
+    view.prompt.textContent = fill(copy.reachedLast, {
+      book: name(CANON_LAST_BOOK),
+      first: name(CANON_FIRST_BOOK),
+    });
+    view.finish.textContent = fill(copy.finishAt, { book: name(CANON_LAST_BOOK) });
+    view.wrap.textContent = fill(copy.wrapInto, { book: name(CANON_FIRST_BOOK) });
   }
 }
 
@@ -55,11 +61,6 @@ function createView(host: HTMLElement, dispatch: (action: Action) => void): View
 
   const status = document.createElement('p');
   status.className = 'status';
-  const lives = document.createElement('span');
-  lives.className = 'lives';
-  const speed = document.createElement('span');
-  speed.className = 'speed';
-  status.append('Lives ', lives, ' · Speed ', speed);
 
   const row = document.createElement('div');
   row.className = 'row';
@@ -84,7 +85,7 @@ function createView(host: HTMLElement, dispatch: (action: Action) => void): View
   offer.append(prompt, finish, wrap);
 
   host.replaceChildren(after, status, row, offer);
-  const view = { after, lives, speed, row, gates, offer, prompt, finish, wrap };
+  const view = { after, status, row, gates, offer, prompt, finish, wrap };
   views.set(host, view);
   return view;
 }

@@ -70,7 +70,8 @@ src/
   content/
     books.json            the 66 books, four NWT names each
     books.ts              types over books.json
-    strings.ts            Record<Locale, Record<StringKey, string>>
+    strings.json          the interface chrome, one table per Locale
+    strings.ts            types over it, and which Locales are offered and remembered
   platform/
     storage.ts            one localStorage key, read and written through try/catch
     board.ts              top-N insert, tie rule, curve-version wipe
