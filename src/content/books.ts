@@ -6,6 +6,9 @@ import data from './books.json';
 
 export type Locale = 'en' | 'nl' | 'ru' | 'ka';
 
+/** Every Locale a Book name exists in, English first: the default one. */
+export const LOCALES: readonly Locale[] = ['en', 'nl', 'ru', 'ka'];
+
 export type SectionId =
   | 'law'
   | 'history'

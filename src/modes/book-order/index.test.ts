@@ -305,3 +305,20 @@ describe('Book Order: Routes', () => {
     expect(BOOK_ORDER.result(finish(state)).complete).toBe(true);
   });
 });
+
+describe('Book Order: one Locale at a time', () => {
+  it('names the Books a Run missed in the Run’s own Locale, drawn from the content table', () => {
+    let state = BOOK_ORDER.createRun({ seed: 11, route: 'canon', start: 'gospels' }, 'ka');
+    const missed: number[] = [];
+    for (let life = 0; life < 3; life += 1) {
+      missed.push(state.answer);
+      state = pick(state, wrongLane(state));
+      if (life < 2) state = pass(state);
+    }
+
+    const names = BOOK_ORDER.result(state).review.map((item) => item.name);
+    const canonical = [...missed].sort((a, b) => a - b);
+    expect(names).toEqual(canonical.map((order) => BOOKS[order - 1].names.ka));
+    expect(names).not.toEqual(canonical.map((order) => BOOKS[order - 1].names.en));
+  });
+});
