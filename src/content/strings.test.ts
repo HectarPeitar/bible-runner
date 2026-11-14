@@ -38,6 +38,6 @@ describe('Locale: the interface speaks one Locale', () => {
   it('fills a template with the words the Run is carrying', () => {
     const { after, status } = strings('en');
     expect(fill(after, { book: 'Genesis' })).toBe('After Genesis');
-    expect(fill(status, { lives: '3', speed: '1.4' })).toBe('Lives 3 · Speed 1.4');
+    expect(fill(status, { speed: '1.4×' })).toBe('Speed 1.4×');
   });
 });

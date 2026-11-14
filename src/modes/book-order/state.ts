@@ -8,6 +8,8 @@ import {
   SPAWN_Z,
   START_BOOST_SPEED,
   START_SPEED,
+  STUMBLE_PUSH_BACK,
+  STUMBLE_SLOWDOWN,
   climbSpeed,
   rowTravelMs,
 } from './rules';
@@ -45,12 +47,14 @@ export type BookOrderState = {
   readonly lane: number;
   /** Rows on the road, nearest first; the nearest is the one about to arrive. */
   readonly rows: readonly Row[];
+  /** The nearest Row was met in the wrong Lane: it stays on the road until its marked Gate is steered into. */
+  readonly stumbled: boolean;
   readonly speed: number;
   /** `100 × Speed` per Gate met in the right Lane, rounded and summed; a complete Run does not report it. */
   readonly score: number;
   /** Distractor pairs already shown, so a pair does not repeat within a Run. */
   readonly usedPairs: readonly string[];
-  /** Canon orders of the Books this Run met in the wrong Lane, in the order it met them. */
+  /** Canon orders of the Books this Run stumbled on, in the order it met them. */
   readonly review: readonly number[];
   readonly offer: Offer | null;
   /** The Run finished at Revelation: a canon-complete Run, which never scores. */
@@ -167,18 +171,55 @@ function steer(state: BookOrderState, action: Action | null): BookOrderState {
   return lane === state.lane ? state : { ...state, lane };
 }
 
-/** Judges the nearest Row in the Lane the Runner occupies and takes it off the road. */
+/** Records a Book the Run stumbled on once: the Review is put in canon order when it is read. */
+function remember(review: readonly number[], order: number): readonly number[] {
+  return review.includes(order) ? review : [...review, order];
+}
+
+/** The world's speed: a Stumble resets the Run's Speed, and the road drops to half rather than stopping. */
+function approachSpeed(state: BookOrderState): number {
+  return state.stumbled ? state.speed * STUMBLE_SLOWDOWN : state.speed;
+}
+
+/**
+ * A wrong Lane: the Row stays on the road, the Runner is pushed back along it and the
+ * approach slows, so the marked Gate can still be steered into.
+ */
+function stumble(state: BookOrderState): BookOrderState {
+  // The Row is put back a fixed distance ahead of the Runner, whatever the frame
+  // overshot by, so every correction is the same beat to steer into.
+  const pushBack = STUMBLE_PUSH_BACK - state.rows[0].z;
+  return {
+    ...state,
+    rows: state.rows.map((row) => ({ ...row, z: row.z + pushBack })),
+    speed: START_SPEED,
+    stumbled: true,
+    review: remember(state.review, state.rows[0].answer),
+  };
+}
+
+/** The correction was not made: the same Row arrives again in the wrong Lane, and the Run is over. */
+function caught(state: BookOrderState, rows: readonly Row[]): BookOrderState {
+  return {
+    ...state,
+    rows,
+    stumbled: false,
+    over: true,
+    review: remember(state.review, state.rows[0].answer),
+  };
+}
+
+/** Judges the nearest Row in the Lane the Runner occupies; only a Row met in the right Lane leaves the road. */
 function judge(state: BookOrderState): BookOrderState {
   const [row, ...rows] = state.rows;
 
   if (row.gates[state.lane] !== row.answer) {
-    const review = state.review.includes(row.answer)
-      ? state.review
-      : [...state.review, row.answer];
-    return { ...state, rows, review };
+    return state.stumbled ? caught(state, rows) : stumble(state);
   }
 
   const position = row.answer;
+  // A repaired Row is not a reward: it scores nothing and climbs nothing.
+  const speed = state.stumbled ? state.speed : climbSpeed(state.speed);
   const finishedLap =
     state.route !== 'canon' &&
     position === lastBookOfRoute(state.route) &&
@@ -187,10 +228,11 @@ function judge(state: BookOrderState): BookOrderState {
   return {
     ...state,
     rows,
+    stumbled: false,
     position,
     // The Gate is worth the Speed it arrived at, not the Speed it earns.
-    score: state.score + Math.round(state.speed * 100),
-    speed: climbSpeed(state.speed),
+    score: state.stumbled ? state.score : state.score + Math.round(state.speed * 100),
+    speed,
     boostEarned: state.boostEarned || finishedLap,
     offer: state.route === 'canon' && position === CANON_LAST_BOOK ? 'finish-or-wrap' : null,
   };
@@ -210,6 +252,7 @@ export function createRun(options: RunOptions, locale: Locale): BookOrderState {
     position,
     lane: 1,
     rows: [],
+    stumbled: false,
     speed: options.startBoost === true ? START_BOOST_SPEED : START_SPEED,
     score: 0,
     usedPairs: [],
@@ -248,15 +291,16 @@ export function advance(
   const steered = steer(state, action);
   if (!(dtMs > 0)) return steered;
 
-  const dz = Math.max(0, dtMs) * (SPAWN_Z / rowTravelMs(steered.speed));
+  const dz = Math.max(0, dtMs) * (SPAWN_Z / rowTravelMs(approachSpeed(steered)));
   let next: BookOrderState = {
     ...steered,
     rows: steered.rows.map((row) => ({ ...row, z: row.z - dz })),
   };
-  while (next.offer === null && next.rows.length > 0 && next.rows[0].z <= 0) {
+  while (!next.over && next.offer === null && next.rows.length > 0 && next.rows[0].z <= 0) {
     next = judge(next);
   }
-  return topUp(next);
+  // The road is filled to keep asking, and a Run that is over asks nothing more.
+  return next.over ? next : topUp(next);
 }
 
 export function result(state: BookOrderState): RunResult {

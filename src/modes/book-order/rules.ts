@@ -26,6 +26,12 @@ export const SPAWN_Z = ROW_SPACING * ROWS_ON_ROAD;
 /** Time a Row takes to travel the whole road at Speed 1. */
 export const ROW_TRAVEL_MS = 12_000;
 
+/** How much the world slows while a Stumble is being corrected, for a beat. */
+export const STUMBLE_SLOWDOWN = 0.5;
+
+/** How far back along the road a Stumble pushes the Runner, in world units. */
+export const STUMBLE_PUSH_BACK = ROW_SPACING / 4;
+
 /** A correct arrival climbs the Speed, decelerating toward the ceiling. */
 export function climbSpeed(speed: number): number {
   return speed + (SPEED_CEILING - speed) * SPEED_RAMP;
