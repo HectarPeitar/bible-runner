@@ -70,8 +70,8 @@ src/
       index.ts            the Mode: boards, curve, createRun/advance/render/result
       routes.ts           the six Routes, the board each scores on, their Book-range labels
       state.ts            RunState and the transitions (pure)
-      rules.ts            lives, lanes, bounce, speed curve, gate value
-      render.ts           DOM/CSS for lanes, gates, lives, speed
+      rules.ts            lanes, row spacing, travel time, speed curve, gate value
+      render.ts           DOM/CSS for the road, Lanes, Gates and the Runner
   content/
     books.json            the 66 books, four NWT names each
     books.ts              types over books.json
@@ -120,7 +120,7 @@ The platform keeps both records without learning what they mean: a board is kept
 
 - **An engine later is a renderer swap.** `render(state, host)` is the seam; `advance` doesn't know how it is drawn.
 - **The pure core is testable without a browser** — which is what makes vitest worth its dependency.
-- **DOM updates must stay cheap.** Three lanes and one row per beat is a handful of nodes; `render` sets `textContent` and `className` on nodes it created once. No virtual DOM, no diffing library.
+- **DOM updates must stay cheap.** Three Lanes and a few Rows on the road is a handful of nodes; `render` sets `textContent` and `className` on nodes it created once. No virtual DOM, no diffing library.
 - **60 fps is a ceiling, not a goal.** `loop.ts` clamps `dt` (a tab switch must not teleport gates behind the player's back).
 - **Scores are only comparable within a board and a curve version.** That is a property of the design, not a defect.
 - **A second mode is additive**: a new folder under `modes/`, one entry in the registry array. No plugin system, no dynamic import, no config — an array literal that a human edits.

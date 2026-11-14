@@ -26,30 +26,122 @@
         align-items: center;
         margin-top: 1rem;
       }
-      .row {
-        display: flex;
-        gap: 1rem;
-        margin-top: 8rem;
-        transition: transform 60ms linear;
-      }
-      .gate {
-        flex: 1;
-        min-height: 6rem;
-        padding: 1rem;
-        font: inherit;
-        font-size: 1.5rem;
-        cursor: pointer;
-      }
-      .gate.marked {
-        outline: 0.3rem solid #2a7;
-        background: #dfd;
-      }
       .route {
         display: flex;
         gap: 0.25rem;
       }
       .boost {
         border-color: #2a7;
+      }
+
+      /* A Run fills the page: a road converging at the horizon, Rows travelling
+         toward the Runner. The projection is in the Mode; the look is here. */
+      .run {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background: radial-gradient(120% 80% at 50% 22%, #16202e 0%, #0a0f16 55%, #05070a 100%);
+        color: #e6edf3;
+      }
+      .stage {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .road {
+        position: absolute;
+        inset: 0;
+        clip-path: polygon(2% 100%, 98% 100%, 50% 24%);
+        background: linear-gradient(#11161d 0%, #1a222c 45%, #0f151c 100%);
+        opacity: 0.9;
+      }
+      .road::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(to bottom, transparent 0 38px, #24303d 38px 40px);
+        mask-image: linear-gradient(to bottom, transparent 26%, black 62%);
+        opacity: 0.55;
+      }
+      .horizon {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 24%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #2f81f7, transparent);
+        opacity: 0.5;
+      }
+      .gate {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        display: grid;
+        place-items: center;
+        padding: 0.2rem 0.35rem;
+        border-radius: 0.6rem;
+        border: 2px solid #33475e;
+        background: #17202b;
+        white-space: nowrap;
+        line-height: 1.05;
+        will-change: transform, width, height;
+      }
+      /* A Stumble marks the Gate holding the next Book: a lit ring, a glow, and
+         its two distractors receded, so "this one" reads at a glance. */
+      .gate.marked {
+        border-color: #3ddc84;
+        background: #10301f;
+        color: #e6fff0;
+        box-shadow: 0 0 0 3px #3ddc84, 0 0 32px 6px #3ddc8470;
+      }
+      .gate.dimmed {
+        opacity: 0.28;
+      }
+      .runner {
+        position: absolute;
+        z-index: 500;
+        width: 8rem;
+        height: 2.4rem;
+        display: grid;
+        place-items: center;
+        transform: translate(-50%, -50%);
+        border-radius: 0.5rem;
+        background: #2f81f733;
+        border: 2px solid #2f81f7;
+        color: #cfe4ff;
+        font-size: 1.1rem;
+        transition: left 90ms ease-out;
+      }
+      .after,
+      .hud {
+        position: absolute;
+        z-index: 600;
+        color: #9fb0c3;
+        font-variant-numeric: tabular-nums;
+        pointer-events: none;
+      }
+      .after {
+        top: 2.6rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 1.1rem;
+      }
+      .hud {
+        top: 0.9rem;
+        left: 0.9rem;
+        color: #8b949e;
+      }
+      .offer {
+        position: absolute;
+        z-index: 700;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 0.75rem;
+        text-align: center;
+        background: #05070aee;
       }
     </style>
   </head>

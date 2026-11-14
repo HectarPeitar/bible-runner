@@ -13,11 +13,11 @@ export type RunResult = {
   over: boolean;
   /** The Run finished at Revelation: a canon-complete Run, which never scores. */
   complete: boolean;
-  /** `100 × Speed` per correct Gate, rounded, summed. Zero for a complete Run. */
+  /** `100 × Speed` per Gate met in the right Lane, rounded, summed. Zero for a complete Run. */
   score: number;
   /** The board this Run scores on; null when it does not score at all. */
   board: BoardId | null;
-  /** The Run finished its Route with no Bounces: its Route has earned a Start boost. */
+  /** The Run finished its Route with nothing missed: its Route has earned a Start boost. */
   boostEarned: boolean;
   /** What the end screen lists, in the Mode's own words. */
   review: ReviewItem[];
@@ -25,7 +25,8 @@ export type RunResult = {
 
 /** What a player did since the last `advance`. */
 export type Action =
-  | { type: 'pick'; lane: number }
+  | { type: 'left' }
+  | { type: 'right' }
   | { type: 'finish' }
   | { type: 'wrap' };
 

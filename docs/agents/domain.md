@@ -4,7 +4,7 @@ How the engineering skills should consume this repo's domain documentation when 
 
 ## Before exploring, read these
 
-- **`GLOSSARY.md`** at the repo root — it defines `Book`, `Canon`, `Section`, `Course`, `Route`, `Run`, `Gate`, `Distractor`, `Life`, `Mode`, `Locale`, `Bounce`, `Speed`, `Start boost`. These words are load-bearing: `Mode`, `Route` and `Course` mean different things and are easy to conflate.
+- **`GLOSSARY.md`** at the repo root — it defines `Book`, `Canon`, `Section`, `Course`, `Route`, `Run`, `Row`, `Lane`, `Runner`, `Gate`, `Marked gate`, `Distractor`, `Stumble`, `Caught`, `Review`, `Mode`, `Locale`, `Speed`, `Start boost`. These words are load-bearing: `Mode`, `Route` and `Course` mean different things and are easy to conflate.
 - **`docs/adr/`**: read ADRs that touch the area you're about to work in. `0001-stack-and-mode-boundary.md` fixes the stack and the mode boundary.
 
 Also worth knowing, though not domain docs: `research/` holds the sourcing evidence (NWT book names, stack licensing) and `.scratch/bible-runner/map.md` holds the effort's decisions.

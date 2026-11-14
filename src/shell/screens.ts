@@ -151,19 +151,32 @@ export function resultScreen(host: HTMLElement, view: ResultView): void {
   const title = document.createElement('h1');
   const caption = document.createElement('p');
   const missed = document.createElement('ol');
-  const screen: HTMLElement[] = [title, caption, missed];
+  const screen: HTMLElement[] = [title, caption];
 
   if (result.complete) {
     title.textContent = copy.canonComplete;
     caption.textContent = copy.canonCompleteCaption;
   } else {
     title.textContent = copy.runOver;
-    caption.textContent = result.review.length > 0 ? copy.missedBooks : copy.nothingMissed;
+  }
+
+  // The Review is the one thing a Run leaves that teaches, so it survives a Run
+  // that reached Revelation as well as one that was Caught.
+  if (result.review.length > 0) {
+    if (!result.complete) caption.textContent = copy.missedBooks;
+    else {
+      const label = document.createElement('p');
+      label.textContent = copy.missedBooks;
+      screen.push(label);
+    }
     for (const item of result.review) {
       const entry = document.createElement('li');
       entry.textContent = item.name;
       missed.append(entry);
     }
+    screen.push(missed);
+  } else if (!result.complete) {
+    caption.textContent = copy.nothingMissed;
   }
 
   if (result.board !== null) {
