@@ -46,13 +46,13 @@ export function render(
   view.dispatch = dispatch;
   // Keys steer the Run that is on screen, and nothing once it is over or asking.
   view.accepting = !state.over && state.offer === null;
-  live = view;
+  onScreen = view;
 
   view.after.textContent = fill(copy.after, { book: name(state.position) });
   const speed = `${state.speed.toFixed(1)}×`;
   view.hud.textContent = `${fill(copy.score, { score: String(state.score) })} · ${fill(copy.status, { speed })}`;
 
-  project(view, state);
+  project(view, state, name);
 
   const offering = state.offer !== null;
   view.offer.hidden = !offering;
@@ -67,7 +67,7 @@ export function render(
 }
 
 /** Nearer is lower and larger; each Row's Gates sit on its own line of the road. */
-function project(view: View, state: BookOrderState): void {
+function project(view: View, state: BookOrderState, name: (order: number) => string): void {
   const width = view.stage.clientWidth;
   const height = view.stage.clientHeight;
 
@@ -80,7 +80,7 @@ function project(view: View, state: BookOrderState): void {
 
     row.gates.forEach((order, lane) => {
       const gate = view.gates[at * LANES + lane];
-      const label = BOOKS[order - 1].names[state.locale];
+      const label = name(order);
       // The marking is the teaching: the stumbled Row's answer is the one Gate lit,
       // and its distractors recede so "this one" reads at a glance, not by shade.
       const marked = state.stumbled && at === 0 && order === row.answer;
@@ -174,7 +174,8 @@ function createView(host: HTMLElement, dispatch: (action: Action) => void): View
 }
 
 /** The page's one keydown listener: it steers whichever Run is on screen. */
-let live: View | null = null;
+/** The Run on screen, so the page's one keydown listener steers the right one. */
+let onScreen: View | null = null;
 let listening = false;
 
 function listenForSteering(): void {
@@ -182,7 +183,7 @@ function listenForSteering(): void {
   listening = true;
 
   window.addEventListener('keydown', (event) => {
-    const view = live;
+    const view = onScreen;
     if (view === null || !view.host.isConnected || !view.accepting) return;
     // One Lane per press: a held key is one press, not a slide across the road.
     if (event.repeat) return;

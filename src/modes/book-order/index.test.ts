@@ -43,7 +43,15 @@ const steer = (state: BookOrderState, lane: number): BookOrderState => {
 /** One beat: the nearest Row reaches the Runner and is judged. */
 const arrive = (state: BookOrderState): BookOrderState =>
   BOOK_ORDER.advance(state, rowIntervalMs(state.speed) + 1, null);
-const pass = (state: BookOrderState) => arrive(steer(state, correctLane(state)));
+/**
+ * A Stumble is spread over at least two frames, so repairing it takes more than
+ * one beat: the correction is delivered by frames, not by elapsed time.
+ */
+const pass = (state: BookOrderState): BookOrderState => {
+  let out = arrive(steer(state, correctLane(state)));
+  for (let beat = 0; beat < 8 && out.stumbled && !out.over; beat += 1) out = arrive(out);
+  return out;
+};
 const miss = (state: BookOrderState) => arrive(steer(state, wrongLane(state)));
 const wrap = (state: BookOrderState) => BOOK_ORDER.advance(state, 0, { type: 'wrap' });
 const finish = (state: BookOrderState) => BOOK_ORDER.advance(state, 0, { type: 'finish' });
@@ -118,6 +126,17 @@ describe('Book Order: the road', () => {
     expect(names).toHaveLength(ROWS_ON_ROAD * LANES);
     expect(new Set(names).size).toBe(names.length);
   });
+
+  it('keeps every name on the road distinct for a whole Course, small Sections included', () => {
+    for (const { route } of COURSE_RANGES) {
+      let state = startCourse(route);
+      for (let row = 0; row < routeBooks(route).length; row += 1) {
+        const names = state.rows.flatMap((each) => each.gates);
+        expect(new Set(names).size, route).toBe(names.length);
+        state = pass(state);
+      }
+    }
+  });
 });
 
 describe('Book Order: steering', () => {
@@ -181,8 +200,14 @@ describe('Book Order: steering', () => {
 
 describe('Book Order: a Stumble', () => {
   /** Waits out the correction without steering: the Row arrives again in the wrong Lane. */
-  const waitOut = (state: BookOrderState) =>
-    BOOK_ORDER.advance(state, rowIntervalMs(state.speed) * 2, null);
+  const waitOut = (state: BookOrderState): BookOrderState => {
+    // The correction is delivered in frames, so waiting it out takes more than one.
+    let waiting = state;
+    for (let beat = 0; beat < 8 && waiting.stumbled && !waiting.over; beat += 1) {
+      waiting = BOOK_ORDER.advance(waiting, rowIntervalMs(waiting.speed) * 2, null);
+    }
+    return waiting;
+  };
 
   it('pushes the Runner back, slows the world to half speed, and leaves the Row on the road', () => {
     const state = start();
@@ -209,6 +234,17 @@ describe('Book Order: a Stumble', () => {
     expect(stumbled.stumbled).toBe(true);
     expect(marked.answer).toBe(stumbled.position + 1);
     expect(marked.gates.filter((order) => order === marked.answer)).toHaveLength(1);
+  });
+
+  it('holds the correction through a frame longer than the window, so a Stumble always renders', () => {
+    const stumbled = miss(start());
+
+    const waited = BOOK_ORDER.advance(stumbled, 5_000, null);
+
+    expect(waited.stumbled).toBe(true);
+    expect(waited.over).toBe(false);
+    expect(nearest(waited).z).toBeGreaterThan(0);
+    expect(BOOK_ORDER.result(waited).review).toEqual(BOOK_ORDER.result(stumbled).review);
   });
 
   it('resets Speed to the value a Run starts at, not the boost it was given', () => {

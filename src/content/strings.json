@@ -1,7 +1,7 @@
 {
   "en": {
     "title": "Book Order",
-    "tagline": "Pick the Book that comes next.",
+    "tagline": "Steer into the Book that comes next.",
     "disclaimer": "Teaches Book names from the New World Translation and is not affiliated with Watch Tower Bible and Tract Society.",
     "language": "Language",
     "play": "Play",
@@ -18,7 +18,7 @@
     "runOver": "Run over",
     "score": "Score {score}",
     "scores": "Scores",
-    "boardEntry": "{name} · {score}",
+    "boardEntry": "{name} \u00b7 {score}",
     "boardEmpty": "No scores yet.",
     "namePrompt": "You made the top ten. What name should the board show?",
     "nameLabel": "Name",
