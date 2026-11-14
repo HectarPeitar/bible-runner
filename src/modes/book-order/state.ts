@@ -1,9 +1,17 @@
 import { BOOKS, type Locale, type SectionId } from '../../content/books';
 import { nextRandom, type RandomState } from '../../platform/random';
 import type { Action, ReviewItem, RunOptions, RunResult } from '../types';
-import { LANES, LIVES, START_BOOST_SPEED, START_SPEED, climbSpeed, rowTravelMs } from './rules';
 import {
-  CANON_FIRST_BOOK,
+  LANES,
+  ROWS_ON_ROAD,
+  ROW_SPACING,
+  SPAWN_Z,
+  START_BOOST_SPEED,
+  START_SPEED,
+  climbSpeed,
+  rowTravelMs,
+} from './rules';
+import {
   CANON_LAST_BOOK,
   boardOf,
   firstBookOfRoute,
@@ -16,33 +24,38 @@ import {
 /** A canon Run has reached Revelation and must finish or wrap into Genesis. */
 export type Offer = 'finish-or-wrap';
 
+/** Three Gates travelling toward the Runner; exactly one carries the next Book. */
+export type Row = {
+  /** World distance ahead of the Runner: 0 is the Runner's Lane. */
+  readonly z: number;
+  /** Canon order per Lane, three Lanes. Exactly one is `answer`. */
+  readonly gates: readonly number[];
+  /** The Book this Row asks for: the Gate in the Runner's Lane when it arrives. */
+  readonly answer: number;
+};
+
 export type BookOrderState = {
   /** The PRNG's position, carried in state so `advance` stays pure. */
   readonly rng: RandomState;
   readonly locale: Locale;
   readonly route: RouteId;
-  /** Canon order of the Book the Run is at: the one just passed, or where it began. */
+  /** Canon order of the Book the Run is at: the last one it reached, or where it began. */
   readonly position: number;
-  /** Canon order of the next Book: the correct Gate on this row. */
-  readonly answer: number;
-  /** Canon order per lane, three lanes. Exactly one is the answer. */
-  readonly gates: readonly number[];
-  readonly lives: number;
+  /** The Lane the Runner occupies, 0..2. */
+  readonly lane: number;
+  /** Rows on the road, nearest first; the nearest is the one about to arrive. */
+  readonly rows: readonly Row[];
   readonly speed: number;
-  /** `100 × Speed` per correct Gate, rounded and summed; a complete Run does not report it. */
+  /** `100 × Speed` per Gate met in the right Lane, rounded and summed; a complete Run does not report it. */
   readonly score: number;
-  /** A Bounce marked the correct Gate; only tapping it continues the Run. */
-  readonly marked: boolean;
   /** Distractor pairs already shown, so a pair does not repeat within a Run. */
   readonly usedPairs: readonly string[];
-  /** Canon orders of the Books this Run missed, in the order they were missed. */
+  /** Canon orders of the Books this Run met in the wrong Lane, in the order it met them. */
   readonly review: readonly number[];
-  /** Time this row has spent travelling toward the player. */
-  readonly beatMs: number;
   readonly offer: Offer | null;
   /** The Run finished at Revelation: a canon-complete Run, which never scores. */
   readonly complete: boolean;
-  /** The Run finished its Route with no Bounces: its Route has earned a Start boost. */
+  /** The Run finished its Route with nothing missed: its Route has earned a Start boost. */
   readonly boostEarned: boolean;
   readonly over: boolean;
 };
@@ -75,14 +88,20 @@ function pairsOf(pool: readonly number[]): number[][] {
   return pairs;
 }
 
-/** Draws the row of three Gates: the answer plus two Distractors, lane by lane. */
+/** Draws a Row's three Gates: the answer plus two Distractors, lane by lane. */
 function drawRow(
   section: SectionId,
   answer: number,
   rng: RandomState,
   usedPairs: readonly string[],
+  onRoad: ReadonlySet<number>,
 ): { gates: number[]; rng: RandomState; usedPairs: readonly string[] } {
-  const pairs = pairsOf(distractorPool(section, answer));
+  const near = distractorPool(section, answer);
+  const unseen = near.filter((order) => !onRoad.has(order));
+  // A name already showing on the road is a Gate the Runner cannot tell apart
+  // from the answer; a Section too small to avoid every name falls back to it.
+  const pool = unseen.length >= LANES - 1 ? unseen : near;
+  const pairs = pairsOf(pool);
   const fresh = pairs.filter((pair) => !usedPairs.includes(pairKey(pair)));
   // shortcut: a four-Book Section runs out of fresh Distractor pairs after
   // three laps, so a long Run reuses one; upgrade if a player outlasts that.
@@ -109,41 +128,72 @@ function drawRow(
   };
 }
 
-/** Starts the row for `state.answer`: a new row is a new beat. */
-function beginRow(state: BookOrderState): BookOrderState {
-  const draw = drawRow(sectionOf(state.answer), state.answer, state.rng, state.usedPairs);
-  return {
-    ...state,
-    rng: draw.rng,
-    gates: draw.gates,
-    usedPairs: draw.usedPairs,
-    marked: false,
-    beatMs: 0,
-  };
+/** Fills the road back to ROWS_ON_ROAD, each new Row asking the Book after the farthest. */
+function topUp(state: BookOrderState): BookOrderState {
+  // The whole chain of answers is known before the draw, so a distractor can
+  // never be another Row's answer: a name on two Gates is a name to misread.
+  const answers = state.rows.map((row) => row.answer);
+  while (answers.length < ROWS_ON_ROAD) {
+    answers.push(nextBookOnRoute(state.route, answers[answers.length - 1] ?? state.position));
+  }
+  const onRoad = new Set([...answers, ...state.rows.flatMap((row) => row.gates)]);
+
+  let rows = state.rows;
+  let rng = state.rng;
+  let usedPairs = state.usedPairs;
+
+  while (rows.length < ROWS_ON_ROAD) {
+    const answer = answers[rows.length];
+    const draw = drawRow(sectionOf(answer), answer, rng, usedPairs, onRoad);
+
+    const z = (rows[rows.length - 1]?.z ?? 0) + ROW_SPACING;
+    rows = [...rows, { z, gates: draw.gates, answer }];
+    for (const order of draw.gates) onRoad.add(order);
+    rng = draw.rng;
+    usedPairs = draw.usedPairs;
+  }
+
+  return { ...state, rows, rng, usedPairs };
 }
 
-/** A correct Gate advances the Run; reaching Revelation offers finish-or-wrap. */
-function passGate(state: BookOrderState): BookOrderState {
-  const position = state.answer;
-  if (state.route === 'canon' && position === CANON_LAST_BOOK) {
-    return beginRow({
-      ...state,
-      position,
-      answer: CANON_FIRST_BOOK,
-      offer: 'finish-or-wrap',
-    });
+/** Steers the Runner one Lane; a press into an edge leaves it where it is. */
+function steer(state: BookOrderState, action: Action | null): BookOrderState {
+  const lane =
+    action?.type === 'left'
+      ? Math.max(0, state.lane - 1)
+      : action?.type === 'right'
+        ? Math.min(LANES - 1, state.lane + 1)
+        : state.lane;
+  return lane === state.lane ? state : { ...state, lane };
+}
+
+/** Judges the nearest Row in the Lane the Runner occupies and takes it off the road. */
+function judge(state: BookOrderState): BookOrderState {
+  const [row, ...rows] = state.rows;
+
+  if (row.gates[state.lane] !== row.answer) {
+    const review = state.review.includes(row.answer)
+      ? state.review
+      : [...state.review, row.answer];
+    return { ...state, rows, review };
   }
-  // A Course is finished by passing its last Book; it then wraps and the Run goes on.
+
+  const position = row.answer;
   const finishedLap =
     state.route !== 'canon' &&
     position === lastBookOfRoute(state.route) &&
     state.review.length === 0;
-  return beginRow({
+
+  return {
     ...state,
+    rows,
     position,
-    answer: nextBookOnRoute(state.route, position),
+    // The Gate is worth the Speed it arrived at, not the Speed it earns.
+    score: state.score + Math.round(state.speed * 100),
+    speed: climbSpeed(state.speed),
     boostEarned: state.boostEarned || finishedLap,
-  });
+    offer: state.route === 'canon' && position === CANON_LAST_BOOK ? 'finish-or-wrap' : null,
+  };
 }
 
 export function createRun(options: RunOptions, locale: Locale): BookOrderState {
@@ -153,31 +203,23 @@ export function createRun(options: RunOptions, locale: Locale): BookOrderState {
       ? firstBookOfSection(options.start).order
       : firstBookOfRoute(options.route);
 
-  const state: BookOrderState = {
+  return topUp({
     rng: options.seed >>> 0,
     locale,
     route,
     position,
-    answer: nextBookOnRoute(route, position),
-    gates: [],
-    lives: LIVES,
+    lane: 1,
+    rows: [],
     speed: options.startBoost === true ? START_BOOST_SPEED : START_SPEED,
     score: 0,
-    marked: false,
     usedPairs: [],
     review: [],
-    beatMs: 0,
-    offer: null,
+    // Beginning at Revelation is already reaching it: the first choice is finish-or-wrap.
+    offer: route === 'canon' && position === CANON_LAST_BOOK ? 'finish-or-wrap' : null,
     complete: false,
     boostEarned: false,
     over: false,
-  };
-
-  if (options.route === 'canon' && position === CANON_LAST_BOOK) {
-    // Beginning at Revelation is already reaching it: the first choice is finish-or-wrap.
-    return beginRow({ ...state, answer: CANON_FIRST_BOOK, offer: 'finish-or-wrap' });
-  }
-  return beginRow(state);
+  });
 }
 
 export function advance(
@@ -203,33 +245,18 @@ export function advance(
     return state;
   }
 
-  const pickedLane = action?.type === 'pick' ? action.lane : null;
+  const steered = steer(state, action);
+  if (!(dtMs > 0)) return steered;
 
-  if (state.marked) {
-    // After a Bounce only the marked Gate continues the Run; other taps do nothing.
-    if (pickedLane !== null && state.gates[pickedLane] === state.answer) {
-      return passGate(state);
-    }
-    return state;
+  const dz = Math.max(0, dtMs) * (SPAWN_Z / rowTravelMs(steered.speed));
+  let next: BookOrderState = {
+    ...steered,
+    rows: steered.rows.map((row) => ({ ...row, z: row.z - dz })),
+  };
+  while (next.offer === null && next.rows.length > 0 && next.rows[0].z <= 0) {
+    next = judge(next);
   }
-
-  if (pickedLane !== null) {
-    if (state.gates[pickedLane] === state.answer) {
-      // The Gate is worth the Speed it arrived at, not the Speed it earns.
-      const score = state.score + Math.round(state.speed * 100);
-      return passGate({ ...state, speed: climbSpeed(state.speed), score });
-    }
-    // A Bounce: the row stays, one Life goes, the Speed built so far is lost.
-    const lives = state.lives - 1;
-    const review = state.review.includes(state.answer)
-      ? state.review
-      : [...state.review, state.answer];
-    if (lives === 0) return { ...state, lives, review, speed: START_SPEED, over: true };
-    return { ...state, lives, review, speed: START_SPEED, marked: true };
-  }
-
-  const beatMs = Math.min(state.beatMs + Math.max(0, dtMs), rowTravelMs(state.speed));
-  return beatMs === state.beatMs ? state : { ...state, beatMs };
+  return topUp(next);
 }
 
 export function result(state: BookOrderState): RunResult {
