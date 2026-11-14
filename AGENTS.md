@@ -11,3 +11,11 @@ Five canonical roles, label strings equal to their names. See `docs/agents/triag
 ### Domain docs
 
 Single-context: `GLOSSARY.md` at the root, decisions in `docs/adr/`. See `docs/agents/domain.md`.
+
+### Checks
+
+`npm run check` — layers, types, tests, content. Same command CI runs.
+
+### Working notes
+
+Git identity, screenshots, stopped subagent runs. See `docs/agents/conventions.md`.
