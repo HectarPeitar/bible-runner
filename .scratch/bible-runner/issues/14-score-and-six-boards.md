@@ -26,3 +26,7 @@ Built in `979957e, merged at 88912cf`.
 `100 × Speed` rounded per correct Gate, six boards the Mode declares, top ten with ties to the earlier Run, eviction of the lowest, per-board curve version, and `cleanName` (trim, control characters dropped, 16 code points, `Anonymous`). Stored boards are re-validated on read; a refused write leaves the Run's entry in hand for the screen.
 
 **Verification**: `npm run build`, `npx vitest run` (56 tests), and `npm run check:content` (content table and interface strings) all green on `integration/book-order`. A two-axis code review of the whole branch raised one missing spec requirement and several structural findings; all were fixed in `a14044f`.
+
+## Amended by ADR-0002
+
+The score formula (`100 × Speed`, rounded, summed) stands. What changes: a Row reached after a Stumble scores nothing, and Speed resets on a Stumble — both implemented in [ticket 18](18-stumble-and-caught.md).

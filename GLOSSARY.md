@@ -16,15 +16,25 @@
 
 **Run** — one play of a mode, from start to result. A Book Order run travels one route.
 
-**Gate** — an oncoming obstacle carrying a book's name. Reaching the correct next book passes it; reaching any other costs a life.
+**Row** — the three Gates that arrive together, one per Lane, exactly one carrying the next Book.
 
-**Distractor** — a gate carrying a book that is not the next one in the sequence. Plausible distractors come from near the answer, not from anywhere in the canon.
+**Lane** — one of the three columns the Runner can occupy. A Row judges the Gate in the Runner's Lane.
 
-**Life** — a player's remaining tolerance for a wrong gate within a run.
+**Gate** — an oncoming carrier of a Book's name, occupying one Lane. Exactly one Gate in a Row carries the next Book.
 
-**Bounce** — hitting a wrong gate. The run does not advance: the same row of gates returns, the speed earned so far is lost, and one life is spent. A book cannot be passed over; the order is preserved by construction.
+**Distractor** — a Gate carrying a Book that is not the next one. Plausible Distractors come from near the answer, not from anywhere in the canon.
 
-**Speed** — how fast gates arrive, climbing as the run goes and never resetting except by a bounce. It rises toward a ceiling rather than forever.
+**Runner** — the thing the player steers. It occupies one Lane at a time and moves one Lane per keypress.
+
+**Stumble** — arriving at a Row in the wrong Lane. The Runner is pushed back along the road, the world slows for a beat, and the Gate holding the next Book is marked so the Runner can steer into it. The Row's points are lost; the Book still counts as reached.
+
+**Marked gate** — the Gate in a Stumbled Row that carries the next Book, shown so the recovery is visible. Not the same as "the correct Gate", which every Row has whether or not anyone stumbles.
+
+**Caught** — the run-ending state: a Row reaches the Runner while it is still in the wrong Lane.
+
+**Review** — the list of Books a Run stumbled on, in canon order, shown when it ends.
+
+**Speed** — how fast Rows arrive, and therefore the rate points are earned. It climbs as a Run goes, rises toward a ceiling rather than forever, and resets to its starting value on a Stumble.
 
 **Start boost** — an elevated starting speed, earned by a clean route rather than granted by a menu.
 

@@ -1,7 +1,7 @@
 # 11: A Run you can play, Gospels only
 
 Type: build
-Status: resolved
+Status: superseded
 Blocked by:
 
 **What to build:** open the page and play. A title, then straight into a Run on the Gospels Section: three lanes, three Gates printing Book names, exactly one of them the next Book in canon order. A correct pick advances the row and raises the Speed. A wrong pick Bounces — the row stays, the same three Gates return, the correct one is marked, and tapping it resumes at the cost of a Life and the Speed that was built. Three Lives end the Run, and the end screen lists the Books that were missed, in canonical order.
@@ -28,3 +28,7 @@ Built in `72c37b8, merged at 83c0d87`.
 A playable Run on the Gospels Section: `src/modes/book-order/` with a pure `state.ts`/`rules.ts`, a DOM `render.ts`, `src/shell/` owning the flow and the loop, and a seeded PRNG so a Run replays. 13 tests at the Mode seam. Wrong pick keeps the row, marks the correct Gate, costs a Life and the Speed; three Lives end the Run with the missed Books in canon order.
 
 **Verification**: `npm run build`, `npx vitest run` (56 tests), and `npm run check:content` (content table and interface strings) all green on `integration/book-order`. A two-axis code review of the whole branch raised one missing spec requirement and several structural findings; all were fixed in `a14044f`.
+
+## Superseded
+
+The row model this ticket built — three static Gates judged by a click — was replaced by ADR-0002 (the Runner model): Rows travel, the player steers a Runner between Lanes, and judgement happens on arrival. Tickets [17](17-motion-and-steering.md) and [18](18-stumble-and-caught.md) carry that work. What survives from this ticket: the Mode boundary, the pure `advance`, the seeded PRNG, the loop, the shell, and 13 tests' worth of rule coverage that the rewrite must keep passing or re-earn.
