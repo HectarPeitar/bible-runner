@@ -49,7 +49,8 @@ export function render(
   live = view;
 
   view.after.textContent = fill(copy.after, { book: name(state.position) });
-  view.hud.textContent = `${fill(copy.score, { score: String(state.score) })} · ${state.speed.toFixed(1)}×`;
+  const speed = `${state.speed.toFixed(1)}×`;
+  view.hud.textContent = `${fill(copy.score, { score: String(state.score) })} · ${fill(copy.status, { speed })}`;
 
   project(view, state);
 
@@ -80,6 +81,11 @@ function project(view: View, state: BookOrderState): void {
     row.gates.forEach((order, lane) => {
       const gate = view.gates[at * LANES + lane];
       const label = BOOKS[order - 1].names[state.locale];
+      // The marking is the teaching: the stumbled Row's answer is the one Gate lit,
+      // and its distractors recede so "this one" reads at a glance, not by shade.
+      const marked = state.stumbled && at === 0 && order === row.answer;
+      gate.classList.toggle('marked', marked);
+      gate.classList.toggle('dimmed', state.stumbled && at === 0 && !marked);
       if (gate.textContent !== label) gate.textContent = label;
       gate.hidden = false;
       gate.style.width = `${boxWidth}px`;

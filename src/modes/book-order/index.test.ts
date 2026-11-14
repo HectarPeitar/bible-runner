@@ -8,6 +8,8 @@ import {
   SPEED_CEILING,
   START_BOOST_SPEED,
   START_SPEED,
+  STUMBLE_PUSH_BACK,
+  STUMBLE_SLOWDOWN,
   rowIntervalMs,
 } from './rules';
 import {
@@ -177,6 +179,117 @@ describe('Book Order: steering', () => {
   });
 });
 
+describe('Book Order: a Stumble', () => {
+  /** Waits out the correction without steering: the Row arrives again in the wrong Lane. */
+  const waitOut = (state: BookOrderState) =>
+    BOOK_ORDER.advance(state, rowIntervalMs(state.speed) * 2, null);
+
+  it('pushes the Runner back, slows the world to half speed, and leaves the Row on the road', () => {
+    const state = start();
+    const row = nearest(state);
+    const stumbled = miss(state);
+
+    expect(stumbled.over).toBe(false);
+    expect(stumbled.stumbled).toBe(true);
+    expect(stumbled.position).toBe(state.position);
+    expect(stumbled.rows).toHaveLength(ROWS_ON_ROAD);
+    expect(nearest(stumbled).z).toBeCloseTo(STUMBLE_PUSH_BACK, 6);
+    expect(nearest(stumbled).gates).toEqual(row.gates);
+    expect(nearest(stumbled).answer).toBe(row.answer);
+
+    const free = nearest(state).z - nearest(BOOK_ORDER.advance(state, 100, null)).z;
+    const slowed = nearest(stumbled).z - nearest(BOOK_ORDER.advance(stumbled, 100, null)).z;
+    expect(slowed).toBeCloseTo(free * STUMBLE_SLOWDOWN, 5);
+  });
+
+  it('marks the Gate carrying the next Book, and that Book is still the one being asked', () => {
+    const stumbled = miss(start());
+    const marked = nearest(stumbled);
+
+    expect(stumbled.stumbled).toBe(true);
+    expect(marked.answer).toBe(stumbled.position + 1);
+    expect(marked.gates.filter((order) => order === marked.answer)).toHaveLength(1);
+  });
+
+  it('resets Speed to the value a Run starts at, not the boost it was given', () => {
+    const ran = pass(start());
+    expect(ran.speed).toBeGreaterThan(START_SPEED);
+    expect(miss(ran).speed).toBe(START_SPEED);
+
+    const boosted = BOOK_ORDER.createRun(
+      { seed: 11, route: 'canon', start: 'gospels', startBoost: true },
+      'en',
+    );
+    expect(boosted.speed).toBe(START_BOOST_SPEED);
+    expect(miss(boosted).speed).toBe(START_SPEED);
+  });
+
+  it('steering into the marked Gate continues the Run: no score, no climb, and the canon advances', () => {
+    const stumbled = miss(start());
+    const answer = nearest(stumbled).answer;
+    const repaired = pass(stumbled);
+
+    expect(repaired.stumbled).toBe(false);
+    expect(repaired.position).toBe(answer);
+    expect(repaired.score).toBe(0);
+    expect(repaired.speed).toBe(START_SPEED);
+    expect(BOOK_ORDER.result(repaired).over).toBe(false);
+    expect(pass(repaired).score).toBe(START_SPEED * 100);
+  });
+
+  it('puts the Book stumbled on in the Review, so a repaired Run has earned nothing', () => {
+    const stumbled = miss(start());
+    const answer = nearest(stumbled).answer;
+    const repaired = pass(stumbled);
+
+    expect(BOOK_ORDER.result(repaired).review.map((item) => item.order)).toEqual([answer]);
+  });
+
+  it('re-syncs the road: the Row stumbled on is still the next Book, and none is skipped', () => {
+    const stumbled = miss(start());
+    const answer = nearest(stumbled).answer;
+    const repaired = pass(stumbled);
+
+    expect(nearest(repaired).answer).toBe(answer + 1);
+    expect(repaired.rows.map((row) => row.answer)).toEqual(
+      Array.from({ length: ROWS_ON_ROAD }, (_unused, at) => answer + 1 + at),
+    );
+  });
+
+  it('a Row arriving while the Runner is still in the wrong Lane ends the Run as Caught', () => {
+    const stumbled = miss(start());
+    const answer = nearest(stumbled).answer;
+    const caught = waitOut(stumbled);
+
+    expect(caught.stumbled).toBe(false);
+    expect(caught.over).toBe(true);
+    expect(BOOK_ORDER.advance(caught, 5_000, { type: 'left' })).toBe(caught);
+    expect(BOOK_ORDER.result(caught).over).toBe(true);
+    expect(caught.position).toBe(stumbled.position);
+    expect(BOOK_ORDER.result(caught).review.map((item) => item.order)).toEqual([answer]);
+  });
+
+  it('the Review lists every Book stumbled on in canon order, repaired or Caught', () => {
+    let state = start();
+    const stumbledOn: number[] = [];
+
+    for (let row = 0; row < 3; row += 1) {
+      stumbledOn.push(nearest(state).answer);
+      state = pass(miss(state));
+    }
+    stumbledOn.push(nearest(state).answer);
+    state = waitOut(miss(state));
+
+    const review = BOOK_ORDER.result(state).review;
+    const canonical = [...stumbledOn].sort((a, b) => a - b);
+    expect(state.over).toBe(true);
+    expect(review.map((item) => item.order)).toEqual(canonical);
+    expect(review.map((item) => item.name)).toEqual(
+      canonical.map((order) => BOOKS[order - 1].names.en),
+    );
+  });
+});
+
 describe('Book Order: a Run on the Gospels', () => {
   it('a correct arrival advances the canon and raises the Speed', () => {
     const before = start();
@@ -186,23 +299,6 @@ describe('Book Order: a Run on the Gospels', () => {
     expect(after.position).toBe(answer);
     expect(after.speed).toBeGreaterThan(before.speed);
     expect(BOOK_ORDER.result(after).over).toBe(false);
-  });
-
-  it('a Run that meets three Rows in the wrong Lane lists the Books it missed in canon order', () => {
-    let state = start();
-    const missed: number[] = [];
-
-    for (let row = 0; row < 3; row += 1) {
-      missed.push(nearest(state).answer);
-      state = miss(state);
-    }
-
-    const review = BOOK_ORDER.result(state).review;
-    const canonical = [...missed].sort((a, b) => a - b);
-    expect(review.map((item) => item.order)).toEqual(canonical);
-    expect(review.map((item) => item.name)).toEqual(
-      canonical.map((order) => BOOKS[order - 1].names.en),
-    );
   });
 
   it('the same seed and the same key sequence produce the same Run', () => {
@@ -544,12 +640,12 @@ describe('Book Order: the Start boost', () => {
 });
 
 describe('Book Order: one Locale at a time', () => {
-  it('names the Books a Run missed in the Run’s own Locale, drawn from the content table', () => {
+  it('names the Books a Run stumbled on in the Run’s own Locale, drawn from the content table', () => {
     let state = BOOK_ORDER.createRun({ seed: 11, route: 'canon', start: 'gospels' }, 'ka');
     const missed: number[] = [];
     for (let row = 0; row < 3; row += 1) {
       missed.push(nearest(state).answer);
-      state = miss(state);
+      state = pass(miss(state));
     }
 
     const names = BOOK_ORDER.result(state).review.map((item) => item.name);

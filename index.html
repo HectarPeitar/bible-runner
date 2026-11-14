@@ -87,6 +87,17 @@
         line-height: 1.05;
         will-change: transform, width, height;
       }
+      /* A Stumble marks the Gate holding the next Book: a lit ring, a glow, and
+         its two distractors receded, so "this one" reads at a glance. */
+      .gate.marked {
+        border-color: #3ddc84;
+        background: #10301f;
+        color: #e6fff0;
+        box-shadow: 0 0 0 3px #3ddc84, 0 0 32px 6px #3ddc8470;
+      }
+      .gate.dimmed {
+        opacity: 0.28;
+      }
       .runner {
         position: absolute;
         z-index: 500;

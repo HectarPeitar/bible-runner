@@ -40,7 +40,7 @@ export function strings(locale: Locale): Strings {
   return table;
 }
 
-/** Puts words where a string's placeholders are: `{book}`, `{lives}`, `{speed}`. */
+/** Puts words where a string's placeholders are: `{book}`, `{speed}`. */
 export function fill(template: string, words: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_placeholder, key: string) => words[key] ?? `{${key}}`);
 }
