@@ -3,93 +3,106 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Book Order — movement spike</title>
+    <title>Book Order — perspective spike</title>
     <style>
-      :root {
-        --lane: 12rem;
-      }
       * { box-sizing: border-box; }
       html, body {
         margin: 0;
         height: 100%;
         overflow: hidden;
-        background: #0d1117;
+        background: #07090d;
         color: #e6edf3;
         font-family: system-ui, sans-serif;
       }
       #stage {
         position: relative;
-        width: calc(var(--lane) * 3);
         height: 100%;
-        margin: 0 auto;
         overflow: hidden;
-        background: linear-gradient(#0d1117, #161b22 60%, #0d1117);
+        background:
+          radial-gradient(120% 80% at 50% 22%, #16202e 0%, #0a0f16 55%, #05070a 100%);
       }
-      /* The hit line: where a row is judged. */
-      #stage::after {
+      /* The road, in perspective: wide at the player, converging at the horizon. */
+      #road {
+        position: absolute;
+        inset: 0;
+        clip-path: polygon(2% 100%, 98% 100%, 58% 24%, 42% 24%);
+        background: linear-gradient(#11161d 0%, #1a222c 45%, #0f151c 100%);
+        opacity: 0.9;
+      }
+      #road::before {
         content: "";
         position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 22%;
-        border-top: 2px dashed #2f81f7;
-        opacity: 0.5;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0 38px,
+          #24303d 38px 40px
+        );
+        mask-image: linear-gradient(to bottom, transparent 22%, black 60%);
+        opacity: 0.6;
       }
-      .row {
+      #horizon {
         position: absolute;
         left: 0;
         right: 0;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.5rem;
-        padding: 0 0.5rem;
-        will-change: transform;
+        top: 24%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #2f81f7, transparent);
+        opacity: 0.55;
       }
+      /* Every gate is absolutely placed and projected by script. */
       .gate {
-        height: 4.5rem;
+        position: absolute;
+        top: 0;
+        left: 0;
         display: grid;
         place-items: center;
         text-align: center;
-        padding: 0.25rem;
-        border-radius: 0.75rem;
-        border: 2px solid #30363d;
-        background: #1f2630;
-        font-size: 1.05rem;
-        line-height: 1.15;
+        padding: 0.35rem 0.4rem;
+        border-radius: 0.7rem;
+        border: 2px solid #334155;
+        background: #1b2430;
+        transform-origin: 50% 50%;
+        will-change: transform, opacity;
         overflow-wrap: anywhere;
+        line-height: 1.1;
+        white-space: nowrap;
       }
-      .row.judged .gate.right { border-color: #2ea043; background: #12261a; }
-      .row.judged .gate.wrong { border-color: #f85149; background: #2d1416; }
+      .gate.right { border-color: #2ea043; background: #10261a; box-shadow: 0 0 1.5rem #2ea04355; }
+      .gate.wrong { border-color: #f85149; background: #2a1316; }
       #player {
         position: absolute;
-        bottom: 12%;
-        width: calc(100% / 3);
-        height: 3rem;
-        will-change: transform;
-        transition: transform 90ms ease-out;
-      }
-      #player::after {
-        content: "▮";
-        display: block;
-        text-align: center;
-        font-size: 2.5rem;
-        color: #2f81f7;
+        left: 50%;
+        bottom: 6%;
+        width: 9rem;
+        height: 2.6rem;
+        margin-left: -4.5rem;
+        display: grid;
+        place-items: center;
+        border-radius: 0.6rem;
+        background: #2f81f733;
+        border: 2px solid #2f81f7;
+        font-size: 0.95rem;
+        color: #cfe4ff;
+        transition: left 90ms ease-out;
+        will-change: left;
       }
       #hud {
         position: absolute;
         top: 0.75rem;
-        left: 0.75rem;
-        right: 0.75rem;
+        left: 0.9rem;
+        right: 0.9rem;
         display: flex;
         justify-content: space-between;
         font-variant-numeric: tabular-nums;
-        pointer-events: none;
+        color: #8b949e;
       }
+      #hud b { color: #e6edf3; }
       #after {
         position: absolute;
-        bottom: 26%;
         left: 0;
         right: 0;
+        bottom: 15.5%;
         text-align: center;
         color: #8b949e;
         pointer-events: none;
@@ -99,19 +112,11 @@
         inset: 0;
         display: grid;
         place-content: center;
-        gap: 1rem;
+        gap: 0.75rem;
         text-align: center;
-        background: #0d1117ee;
+        background: #05070aee;
       }
       #over[hidden] { display: none; }
-      #shake { position: absolute; inset: 0; pointer-events: none; }
-      .shaking #shake { animation: shake 220ms; }
-      @keyframes shake {
-        0%, 100% { transform: translate(0, 0); }
-        25% { transform: translate(-0.5rem, 0.25rem); }
-        50% { transform: translate(0.5rem, -0.25rem); }
-        75% { transform: translate(-0.25rem, -0.25rem); }
-      }
       kbd {
         border: 1px solid #30363d;
         border-bottom-width: 2px;
@@ -120,14 +125,23 @@
         font: inherit;
         font-size: 0.85em;
       }
+      #stage.shaking #road,
+      #stage.shaking #player { animation: shake 200ms; }
+      @keyframes shake {
+        0%, 100% { translate: 0 0; }
+        25% { translate: -0.6rem 0.2rem; }
+        50% { translate: 0.6rem -0.2rem; }
+        75% { translate: -0.3rem -0.2rem; }
+      }
     </style>
   </head>
   <body>
     <div id="stage">
-      <div id="shake"></div>
-      <div id="hud"><span id="score">0</span><span id="speed">1.0×</span></div>
+      <div id="road"></div>
+      <div id="horizon"></div>
       <div id="after"></div>
-      <div id="player"></div>
+      <div id="player">◤</div>
+      <div id="hud"><span>Score <b id="score">0</b></span><span>Speed <b id="speed">1.0×</b></span></div>
       <div id="over" hidden>
         <h1>Caught</h1>
         <p id="final"></p>
@@ -136,7 +150,8 @@
     </div>
 
     <script>
-      // Spike only: proves travelling gates + keyboard steering at 60fps with DOM/CSS.
+      // Spike: perspective projection in DOM/CSS. World units measured from the
+      // player along the road; the renderer projects z into screen scale and y.
       const BOOKS = [
         'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges',
         'Ruth', '1 Samuel', '2 Samuel', '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles',
@@ -147,9 +162,14 @@
       ];
 
       const LANES = 3;
-      const TRAVEL_MS = 2600; // a row takes this long to reach the hit line at 1×
-      const ROW_GAP_PX = 210;
-      const STUMBLES = 2; // second stumble within the window catches you
+      const ROW_SPACING = 1400;   // world units between rows — bigger than before
+      const SPAWN_Z = 7000;       // how far ahead a row exists (anticipation)
+      const PERSPECTIVE = 3200;   // larger = flatter, smaller = more dramatic
+      const ROAD_AT_PLAYER = 1.05; // road width as a fraction of the stage at z=0
+      const HORIZON = 0.24;       // horizon as a fraction of stage height
+      const PLAYER_Y = 0.86;      // where z=0 sits on screen
+      const TRAVEL_MS = 12000;    // world units are paced so one row takes this long at 1×
+      const MIN_SCALE = 0.34;     // below this text is unreadable: fade instead
 
       const stage = document.getElementById('stage');
       const player = document.getElementById('player');
@@ -162,12 +182,12 @@
       let lane = 1;
       let speed = 1;
       let score = 0;
-      let nextBook = 1; // index into BOOKS still to reach
+      let nextBook = 1;
       let rows = [];
       let running = true;
       let stumbleAt = -Infinity;
       let last = 0;
-      let seed = 12345;
+      let seed = 20260214;
 
       const rand = () => {
         seed = (seed + 0x6d2b79f5) | 0;
@@ -176,23 +196,50 @@
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       };
 
-      function drawRow(row) {
-        const el = document.createElement('div');
-        el.className = 'row';
-        row.gates.forEach((name, i) => {
-          const gate = document.createElement('div');
-          gate.className = 'gate';
-          gate.textContent = name;
-          if (i === row.answerLane) gate.dataset.right = 'yes';
-          el.append(gate);
+      /** Screen scale for a world distance ahead of the player. */
+      const scaleOf = (z) => PERSPECTIVE / (PERSPECTIVE + Math.max(0, z));
+      /** Screen y for a world distance; z=0 is the player, infinity is the horizon. */
+      const yOf = (z, h) => h * (HORIZON + (PLAYER_Y - HORIZON) * scaleOf(z));
+      /** Half-width of the road at a given scale. */
+      const roadHalfOf = (s, w) => (w * ROAD_AT_PLAYER * s) / 2;
+
+      function projectRow(row) {
+        const h = stage.clientHeight;
+        const w = stage.clientWidth;
+        // Past the player a row keeps its size and keeps sliding down and away.
+        const s = row.z < 0 ? 1 : scaleOf(row.z);
+        const y = row.z < 0
+          ? h * (PLAYER_Y + Math.min(0.18, -row.z / 9000))
+          : yOf(row.z, h);
+        const fade = s < MIN_SCALE ? Math.max(0, (s - MIN_SCALE * 0.6) / (MIN_SCALE * 0.4)) : 1;
+        const fadeIn = Math.min(1, Math.max(0, (SPAWN_Z - row.z) / 900));
+        const laneWidth = (w * ROAD_AT_PLAYER * s) / LANES;
+        row.gates.forEach((gate, i) => {
+          const x = w / 2 + (i - (LANES - 1) / 2) * laneWidth;
+          gate.el.style.transform =
+            `translate3d(${x - gate.w / 2}px, ${y - gate.h / 2}px, 0) scale(${s})`;
+          gate.el.style.opacity = String(Math.min(fade, fadeIn));
+          gate.el.style.zIndex = String(1000 - Math.round(row.z));
         });
-        stage.append(el);
-        row.el = el;
-        moveRow(row);
       }
 
-      function moveRow(row) {
-        row.el.style.transform = `translate3d(0, ${row.y}px, 0)`;
+      function buildRow(gates, answerLane, answer) {
+        const row = { z: SPAWN_Z, gates: [], answerLane, answer, judged: false };
+        gates.forEach((name, i) => {
+          const el = document.createElement('div');
+          el.className = 'gate';
+          el.textContent = name;
+          el.dataset.right = i === answerLane ? 'yes' : 'no';
+          stage.append(el);
+          const w = Math.min(280, Math.max(120, name.length * 12 + 40));
+          const h = 62;
+          el.style.width = w + 'px';
+          el.style.height = h + 'px';
+          el.style.fontSize = '1.05rem';
+          row.gates.push({ el, w, h });
+        });
+        rows.push(row);
+        projectRow(row);
       }
 
       function newRow() {
@@ -204,36 +251,39 @@
         const answerLane = Math.floor(rand() * LANES);
         const gates = [a, b];
         gates.splice(answerLane, 0, answer);
-        const row = { y: -120, gates, answerLane, answer, judged: false };
-        drawRow(row);
-        return row;
+        buildRow(gates, answerLane, answer);
       }
 
       function setLane(next) {
         lane = Math.max(0, Math.min(LANES - 1, next));
-        player.style.transform = `translate3d(${lane * 100}%, 0, 0)`;
+        const h = stage.clientHeight;
+        const w = stage.clientWidth;
+        const laneWidth = w * ROAD_AT_PLAYER / LANES;
+        player.style.left = w / 2 + (lane - 1) * laneWidth + 'px';
+        void h;
       }
 
       function judge(row) {
         row.judged = true;
-        const gates = row.el.children;
-        gates[row.answerLane].classList.add('right');
+        row.gates.forEach((gate, i) => {
+          if (i === row.answerLane) gate.el.classList.add('right');
+        });
         if (lane === row.answerLane) {
           score += Math.round(100 * speed);
           nextBook += 1;
-          speed = Math.min(4, speed + 0.08);
+          speed = Math.min(2.4, speed + 0.08);
           scoreEl.textContent = String(score);
           speedEl.textContent = speed.toFixed(1) + '×';
           after.textContent = 'After ' + row.answer;
         } else {
-          gates[lane].classList.add('wrong');
+          row.gates[lane].el.classList.add('wrong');
           const now = performance.now();
-          if (now - stumbleAt < 2200) return end('Caught after a second stumble');
+          if (now - stumbleAt < 2000) return end('Caught after a second stumble');
           stumbleAt = now;
-          speed = Math.max(1, speed - 0.35);
+          speed = Math.max(1, speed - 0.4);
           speedEl.textContent = speed.toFixed(1) + '×';
           stage.classList.add('shaking');
-          setTimeout(() => stage.classList.remove('shaking'), 240);
+          setTimeout(() => stage.classList.remove('shaking'), 210);
         }
       }
 
@@ -243,37 +293,33 @@
         over.hidden = false;
       }
 
-      const HIT_LINE = () => stage.clientHeight * 0.22;
-
       function frame(now) {
         if (!running) return;
         const dt = last === 0 ? 0 : Math.min(now - last, 100);
         last = now;
         if (dt > 0) {
-          const pxPerMs = (stage.clientHeight - HIT_LINE()) / (TRAVEL_MS / speed);
+          // World units per millisecond: a row crosses the whole road in ~5 s at 1×.
+          const dzPerMs = (SPAWN_Z / TRAVEL_MS) * speed;
           for (const row of rows) {
-            row.y += pxPerMs * dt;
-            moveRow(row);
-            if (!row.judged && row.y + 72 >= stage.clientHeight - HIT_LINE()) judge(row);
+            row.z -= dzPerMs * dt;
+            if (!row.judged && row.z <= 0) judge(row);
+            projectRow(row);
           }
           rows = rows.filter((row) => {
-            if (row.judged && row.y > stage.clientHeight + 200) {
-              row.el.remove();
+            if (row.z < -900) {
+              row.gates.forEach((g) => g.el.remove());
               return false;
             }
             return true;
           });
-          const lastRow = rows[rows.length - 1];
-          if (lastRow === undefined || lastRow.y > ROW_GAP_PX) rows.push(newRow());
+          const nearest = rows[0];
+          if (nearest === undefined || nearest.z < SPAWN_Z - ROW_SPACING) newRow();
         }
         requestAnimationFrame(frame);
       }
 
       addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !running) {
-          location.reload();
-          return;
-        }
+        if (e.key === 'Enter' && !running) { location.reload(); return; }
         const left = e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A';
         const right = e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D';
         if (left) setLane(lane - 1);
@@ -281,6 +327,18 @@
         if (left || right) e.preventDefault();
       });
 
+      addEventListener('resize', () => setLane(lane));
+      for (let z = SPAWN_Z; z > 0; z -= ROW_SPACING) {
+        const answer = BOOKS[nextBook % BOOKS.length];
+        const pool = BOOKS.filter((b) => b !== answer);
+        const a = pool[Math.floor(rand() * pool.length)];
+        let b = pool[Math.floor(rand() * pool.length)];
+        while (b === a) b = pool[Math.floor(rand() * pool.length)];
+        const answerLane = Math.floor(rand() * LANES);
+        const gates = [a, b];
+        gates.splice(answerLane, 0, answer);
+        buildRow(gates, answerLane, answer);
+      }
       setLane(1);
       after.textContent = 'After ' + BOOKS[0];
       requestAnimationFrame(frame);
