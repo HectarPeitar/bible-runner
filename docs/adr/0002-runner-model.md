@@ -16,7 +16,7 @@ The fix is not a mechanic bolted on. It changes what the player does: **read thr
 
 **2. The player steers a Runner in a Lane.** Three Lanes. The Runner occupies one; ←/→ (and A/D) move it one Lane per press. The Gate in the Runner's Lane is the answer that Row judges. There are no buttons to click during a Run.
 
-**3. A wrong Lane is a Stumble, not a lost Life.** The Runner bounces back along the road, the world drops to about 0.5× for a beat, the Gate holding the next Book is marked green, and the Runner can steer into it and continue. Motion never stops.
+**3. A wrong Lane is a Stumble, not a lost Life.** The Row is pushed back along the road (equivalently, the Runner loses ground: only the distance between them is in the state), the world drops to about 0.5× for a beat, the Gate holding the next Book is marked green, and the Runner can steer into it and continue. Motion never stops.
 
 **4. A repaired Row scores nothing.** The Book still counts as reached, so the canon advances and the Lanes ahead stay in order. Points are the only reward the game has; if repair paid, accuracy would stop mattering.
 
