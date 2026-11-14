@@ -142,3 +142,24 @@ Switch when any of these become true, in likely order:
 1. One-minute glyph check before writing any CSS: dump the cmap of the chosen Noto faces for the four locales' strings, confirm Mkhedruli and Cyrillic both resolve, and record the two `@font-face` blocks that do it.
 2. Time 50–150 moving DOM text nodes vs the same count drawn to canvas on the oldest phone available, to replace the "~100 nodes" judgement in Finding 9.2 with a number.
 3. When mode 2 is specified, re-check Kaplay: if `4000.0.0` is stable by then, the switch is a renderer swap, not a rewrite.
+
+## Addendum, 14 Nov 2026: three.js and WebGPU considered and declined
+
+Asked after the first playable slice: should Book Order use three.js and/or WebGPU instead of DOM/CSS?
+
+**Licence is not the obstacle.** `three` is MIT (npm registry: version 0.187.0, licence MIT) and WebGPU is a W3C standard, so both pass the "free, open, permissive" rule.
+
+**What the sources say.** three.js now ships two renderers: `WebGLRenderer` and `WebGPURenderer`. `WebGPURenderer` tries WebGPU and **falls back to a WebGL 2 backend automatically** when the browser has no WebGPU, with a `forceWebGL` option to pin it (three.js docs, *WebGPURenderer*). WebGPU is supported in Chrome 113+, Chrome on Android 121+ (Android 12+, Qualcomm/ARM GPUs), Firefox 141 on Windows, and Safari 26; caniuse reports roughly 86.8% full support plus partial support, so about 89% coverage — good, not universal, and the fallback is still needed. Support: direct evidence. Confidence: high.
+
+**Why it does not pay here.**
+
+1. **The content is text, and text is what the DOM does best.** A 3D renderer has no text primitive; it needs `TextGeometry` from a baked font file, SDF atlases, or text rasterised into a canvas texture. All three lose the thing the stack was chosen for: one CSS `font-family` list resolving **per character**, so Latin, Cyrillic and Mkhedruli come from whichever face has the glyph. Rasterised text also loses selection, screen-reader access, and gets blurry at distance.
+2. **There is no performance problem to solve.** The whole game is 24.9 kB of JS (8.16 kB gzip) and moves roughly a dozen DOM nodes. GPU rendering buys frames for a scene already inside budget. three.js would add an order of magnitude of code to paint the same three boxes. **Inference:** a minimal three scene compresses to roughly 130–160 kB gzip; I did not measure it, and the comparison is not close either way.
+3. **WebGPU specifically adds capability, not features we need.** No compute work, no heavy shading, no particles planned. Its draw is throughput for scenes far larger than three lanes and a row of gates.
+4. **Cost is a new mental model.** Scene graph, camera, materials, asset pipeline, plus a second fallback path — for a first game, that is the whole budget spent on plumbing rather than on the loop feeling right.
+
+**The one honest counter-argument**, recorded so it is not lost: three.js has a `CSS3DRenderer` that positions real DOM elements in 3D with a camera. That would give true 3D placement with crisp, selectable text. It buys nothing today because the projection maths already in the spike (`scale = P/(P+z)`, `y = horizon + (player − horizon) · scale`) produces the same picture in ~20 lines, without a dependency. It becomes interesting only if gates need to rotate or tilt in 3D — a visual idea, not a learning one.
+
+**Verdict:** stay on TypeScript + Vite + DOM/CSS. This does not weaken ADR-0001; it adds a reason.
+
+**Revisit trigger, so this is a decision and not a habit:** switch renderer only if a specified visual goal cannot be met by transform-based projection — e.g. a moving 3D subway tunnel, trains with perspective volume, skeletal character animation, or hundreds of simultaneous sprites/particles. If that happens, three.js (WebGL renderer first, WebGPU only as an opt-in path) is the right tool, and it is a **renderer swap inside one Mode** — `advance` stays pure and the shell, storage, boards, locales, routes and content table are untouched. That reversibility is exactly what the Mode boundary was for.
