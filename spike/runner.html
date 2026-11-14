@@ -18,14 +18,13 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-        background:
-          radial-gradient(120% 80% at 50% 22%, #16202e 0%, #0a0f16 55%, #05070a 100%);
+        background: radial-gradient(120% 80% at 50% 22%, #16202e 0%, #0a0f16 55%, #05070a 100%);
       }
-      /* The road, in perspective: wide at the player, converging at the horizon. */
+      /* The road, in perspective: full width at the player, converging at the horizon. */
       #road {
         position: absolute;
         inset: 0;
-        clip-path: polygon(2% 100%, 98% 100%, 58% 24%, 42% 24%);
+        clip-path: polygon(2% 100%, 98% 100%, 50% 24%);
         background: linear-gradient(#11161d 0%, #1a222c 45%, #0f151c 100%);
         opacity: 0.9;
       }
@@ -33,13 +32,9 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: repeating-linear-gradient(
-          to bottom,
-          transparent 0 38px,
-          #24303d 38px 40px
-        );
-        mask-image: linear-gradient(to bottom, transparent 22%, black 60%);
-        opacity: 0.6;
+        background: repeating-linear-gradient(to bottom, transparent 0 38px, #24303d 38px 40px);
+        mask-image: linear-gradient(to bottom, transparent 26%, black 62%);
+        opacity: 0.55;
       }
       #horizon {
         position: absolute;
@@ -48,43 +43,42 @@
         top: 24%;
         height: 1px;
         background: linear-gradient(90deg, transparent, #2f81f7, transparent);
-        opacity: 0.55;
+        opacity: 0.5;
       }
-      /* Every gate is absolutely placed and projected by script. */
       .gate {
         position: absolute;
         top: 0;
         left: 0;
+        z-index: 10;
         display: grid;
         place-items: center;
         text-align: center;
-        padding: 0.35rem 0.4rem;
-        border-radius: 0.7rem;
-        border: 2px solid #334155;
-        background: #1b2430;
+        padding: 0.2rem 0.35rem;
+        border-radius: 0.6rem;
+        border: 2px solid #33475e;
+        background: #17202b;
         transform-origin: 50% 50%;
-        will-change: transform, opacity;
-        overflow-wrap: anywhere;
-        line-height: 1.1;
+        will-change: transform, opacity, width, height;
         white-space: nowrap;
+        line-height: 1.05;
       }
-      .gate.right { border-color: #2ea043; background: #10261a; box-shadow: 0 0 1.5rem #2ea04355; }
+      .gate.right { border-color: #2ea043; background: #0f2517; box-shadow: 0 0 1.5rem #2ea04366; }
       .gate.wrong { border-color: #f85149; background: #2a1316; }
       #player {
         position: absolute;
         z-index: 9000;
         left: 50%;
-        bottom: 6%;
-        width: 9rem;
-        height: 2.6rem;
-        margin-left: -4.5rem;
+        bottom: 5%;
+        width: 8rem;
+        height: 2.4rem;
+        margin-left: -4rem;
         display: grid;
         place-items: center;
-        border-radius: 0.6rem;
+        border-radius: 0.5rem;
         background: #2f81f733;
         border: 2px solid #2f81f7;
-        font-size: 0.95rem;
         color: #cfe4ff;
+        font-size: 1.1rem;
         transition: left 90ms ease-out;
         will-change: left;
       }
@@ -96,17 +90,19 @@
         right: 0.9rem;
         display: flex;
         justify-content: space-between;
-        font-variant-numeric: tabular-nums;
         color: #8b949e;
+        font-variant-numeric: tabular-nums;
       }
       #hud b { color: #e6edf3; }
       #after {
         position: absolute;
+        z-index: 9100;
+        top: 2.6rem;
         left: 0;
         right: 0;
-        bottom: 15.5%;
         text-align: center;
-        color: #8b949e;
+        color: #9fb0c3;
+        font-size: 1.1rem;
         pointer-events: none;
       }
       #over {
@@ -143,7 +139,7 @@
       <div id="road"></div>
       <div id="horizon"></div>
       <div id="after"></div>
-      <div id="player">◤</div>
+      <div id="player">▲</div>
       <div id="hud"><span>Score <b id="score">0</b></span><span>Speed <b id="speed">1.0×</b></span></div>
       <div id="over" hidden>
         <h1>Caught</h1>
@@ -154,7 +150,7 @@
 
     <script>
       // Spike: perspective projection in DOM/CSS. World units measured from the
-      // player along the road; the renderer projects z into screen scale and y.
+      // player along the road; the renderer projects z into a screen y and size.
       const BOOKS = [
         'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges',
         'Ruth', '1 Samuel', '2 Samuel', '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles',
@@ -165,14 +161,15 @@
       ];
 
       const LANES = 3;
-      const ROW_SPACING = 1400;   // world units between rows — bigger than before
-      const SPAWN_Z = 7000;       // how far ahead a row exists (anticipation)
-      const PERSPECTIVE = 3200;   // larger = flatter, smaller = more dramatic
-      const ROAD_AT_PLAYER = 1.05; // road width as a fraction of the stage at z=0
-      const HORIZON = 0.24;       // horizon as a fraction of stage height
-      const PLAYER_Y = 0.86;      // where z=0 sits on screen
-      const TRAVEL_MS = 12000;    // world units are paced so one row takes this long at 1×
-      const MIN_SCALE = 0.34;     // below this text is unreadable: fade instead
+      const ROW_SPACING = 2000;   // world units between rows
+      const SPAWN_Z = 6000;       // farthest row on screen: four rows of anticipation
+      const PERSPECTIVE = 4200;   // larger = flatter, smaller = more dramatic
+      const ROAD_AT_PLAYER = 0.76;
+      const HORIZON = 0.24;
+      const PLAYER_Y = 0.86;
+      const MIN_SCALE = 0.34;
+      const TRAVEL_MS = 9000;     // a row takes this long to reach the player at 1×
+      const MAX_SPEED = 2.4;
 
       const stage = document.getElementById('stage');
       const player = document.getElementById('player');
@@ -185,8 +182,9 @@
       let lane = 1;
       let speed = 1;
       let score = 0;
-      let nextBook = 1;
-      let rows = [];
+      let chain = 1;            // index in BOOKS of the next answer to place on the road
+      let nextBook = 1;         // index of the Book the player must reach next
+      let rows = [];            // nearest first
       let running = true;
       let stumbleAt = -Infinity;
       let last = 0;
@@ -199,84 +197,100 @@
         return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
       };
 
-      /** Screen scale for a world distance ahead of the player. */
       const scaleOf = (z) => PERSPECTIVE / (PERSPECTIVE + Math.max(0, z));
-      /** Screen y for a world distance; z=0 is the player, infinity is the horizon. */
       const yOf = (z, h) => h * (HORIZON + (PLAYER_Y - HORIZON) * scaleOf(z));
-      /** Half-width of the road at a given scale. */
-      const roadHalfOf = (s, w) => (w * ROAD_AT_PLAYER * s) / 2;
 
       function projectRow(row) {
         const h = stage.clientHeight;
         const w = stage.clientWidth;
-        // Past the player a row keeps its size and keeps sliding down and away.
+        // Past the player a row keeps its size and slides down and away.
         const s = row.z < 0 ? 1 : scaleOf(row.z);
         const y = row.z < 0
-          ? h * (PLAYER_Y + Math.min(0.18, -row.z / 9000))
+          ? h * (PLAYER_Y + Math.min(0.16, -row.z / 9000))
           : yOf(row.z, h);
-        // Fade in from the horizon instead of popping, but never fully hide a row
-        // that is still ahead of the player: anticipation is the point of the view.
-        const fade = Math.min(1, Math.max(0, (s - MIN_SCALE * 0.55) / (MIN_SCALE * 0.45)));
+        const fade = Math.min(1, Math.max(0, (s - MIN_SCALE * 0.5) / (MIN_SCALE * 0.5)));
         const laneWidth = (w * ROAD_AT_PLAYER * s) / LANES;
+        // Text is sized for reading, not for perspective: a name you cannot read
+        // ahead is a name you meet too late, which defeats the view.
+        const boxW = Math.min(320, laneWidth * 0.94);
+        const boxH = 30 + 32 * s;
+        const font = 12 + 8 * s;
         row.gates.forEach((gate, i) => {
           const x = w / 2 + (i - (LANES - 1) / 2) * laneWidth;
-          gate.el.style.transform =
-            `translate3d(${x - gate.w / 2}px, ${y - gate.h / 2}px, 0) scale(${s})`;
+          gate.el.style.width = boxW + 'px';
+          gate.el.style.height = boxH + 'px';
+          // Keep a long name on one line: shrink the text to fit its box.
+          const fit = boxW / Math.max(4, gate.name.length * 0.56);
+          gate.el.style.fontSize = Math.min(font, fit) + 'px';
+          gate.el.style.transform = `translate3d(${x - boxW / 2}px, ${y - boxH / 2}px, 0)`;
           gate.el.style.opacity = String(fade);
-          // Nearer rows on top — and never negative, or the road's background hides them.
+          // Nearer rows on top, and never negative or the road hides them.
           gate.el.style.zIndex = String(8000 - Math.round(row.z));
         });
       }
 
-      function buildRow(gates, answerLane, answer) {
-        const row = { z: SPAWN_Z, gates: [], answerLane, answer, judged: false };
+      /** Names already visible on the road, so no Book appears twice at once. */
+      function namesOnRoad() {
+        const seen = new Set();
+        for (const row of rows) for (const name of row.gates.map((g) => g.name)) seen.add(name);
+        return seen;
+      }
+
+      function buildRow(answerName, answerLane, gates, z) {
+        const row = { z, gates: [], answerLane, answer: answerName, judged: false };
         gates.forEach((name, i) => {
           const el = document.createElement('div');
           el.className = 'gate';
           el.textContent = name;
           el.dataset.right = i === answerLane ? 'yes' : 'no';
           stage.append(el);
-          const w = Math.min(280, Math.max(120, name.length * 12 + 40));
-          const h = 62;
-          el.style.width = w + 'px';
-          el.style.height = h + 'px';
-          el.style.fontSize = '1.05rem';
-          row.gates.push({ el, w, h });
+          row.gates.push({ el, name });
         });
         rows.push(row);
         projectRow(row);
+        return row;
       }
 
-      function newRow() {
-        const answer = BOOKS[nextBook % BOOKS.length];
-        const pool = BOOKS.filter((b) => b !== answer);
-        const a = pool[Math.floor(rand() * pool.length)];
-        let b = pool[Math.floor(rand() * pool.length)];
-        while (b === a) b = pool[Math.floor(rand() * pool.length)];
+      /** One row, placed at `z`, with the chain's next answer and two distractors. */
+      function newRow(z = SPAWN_Z) {
+        const answer = BOOKS[chain % BOOKS.length];
+        const answerIndex = chain % BOOKS.length;
+        const banned = namesOnRoad();
+        // The queued answers are known, so a distractor can never be a future answer.
+        for (let i = 0; i < Math.ceil(SPAWN_Z / ROW_SPACING); i += 1) {
+          banned.add(BOOKS[(chain + i) % BOOKS.length]);
+        }
+        // Distractors: nearby canon (the answer's own Section would be the real rule).
+        const pool = BOOKS.filter((name, i) => {
+          if (name === answer || banned.has(name)) return false;
+          return Math.abs(i - answerIndex) <= 6;
+        });
+        const fallback = BOOKS.filter((name) => name !== answer && !banned.has(name));
+        const from = pool.length >= 2 ? pool : fallback;
+        const a = from[Math.floor(rand() * from.length)];
+        let b = from[Math.floor(rand() * from.length)];
+        while (b === a) b = from[Math.floor(rand() * from.length)];
         const answerLane = Math.floor(rand() * LANES);
         const gates = [a, b];
         gates.splice(answerLane, 0, answer);
-        buildRow(gates, answerLane, answer);
+        chain += 1;
+        return buildRow(answer, answerLane, gates, z);
       }
 
       function setLane(next) {
         lane = Math.max(0, Math.min(LANES - 1, next));
-        const h = stage.clientHeight;
         const w = stage.clientWidth;
-        const laneWidth = w * ROAD_AT_PLAYER / LANES;
+        const laneWidth = (w * ROAD_AT_PLAYER) / LANES;
         player.style.left = w / 2 + (lane - 1) * laneWidth + 'px';
-        void h;
       }
 
       function judge(row) {
         row.judged = true;
-        row.gates.forEach((gate, i) => {
-          if (i === row.answerLane) gate.el.classList.add('right');
-        });
+        row.gates[row.answerLane].el.classList.add('right');
         if (lane === row.answerLane) {
           score += Math.round(100 * speed);
-          nextBook += 1;
-          speed = Math.min(2.4, speed + 0.08);
+          nextBook = BOOKS.indexOf(row.answer) + 1;
+          speed = Math.min(MAX_SPEED, speed + 0.08);
           scoreEl.textContent = String(score);
           speedEl.textContent = speed.toFixed(1) + '×';
           after.textContent = 'After ' + row.answer;
@@ -294,7 +308,7 @@
 
       function end(reason) {
         running = false;
-        final.textContent = reason + ' — scored ' + score + ' over ' + nextBook + ' Books';
+        final.textContent = `${reason} — scored ${score} over ${nextBook} Books`;
         over.hidden = false;
       }
 
@@ -303,7 +317,6 @@
         const dt = last === 0 ? 0 : Math.min(now - last, 100);
         last = now;
         if (dt > 0) {
-          // World units per millisecond: a row crosses the whole road in ~5 s at 1×.
           const dzPerMs = (SPAWN_Z / TRAVEL_MS) * speed;
           for (const row of rows) {
             row.z -= dzPerMs * dt;
@@ -317,8 +330,8 @@
             }
             return true;
           });
-          const nearest = rows[0];
-          if (nearest === undefined || nearest.z < SPAWN_Z - ROW_SPACING) newRow();
+          const farthest = rows[rows.length - 1];
+          if (farthest === undefined || farthest.z < SPAWN_Z - ROW_SPACING) newRow();
         }
         requestAnimationFrame(frame);
       }
@@ -333,17 +346,10 @@
       });
 
       addEventListener('resize', () => setLane(lane));
-      for (let z = SPAWN_Z; z > 0; z -= ROW_SPACING) {
-        const answer = BOOKS[nextBook % BOOKS.length];
-        const pool = BOOKS.filter((b) => b !== answer);
-        const a = pool[Math.floor(rand() * pool.length)];
-        let b = pool[Math.floor(rand() * pool.length)];
-        while (b === a) b = pool[Math.floor(rand() * pool.length)];
-        const answerLane = Math.floor(rand() * LANES);
-        const gates = [a, b];
-        gates.splice(answerLane, 0, answer);
-        buildRow(gates, answerLane, answer);
-      }
+
+      // Seed the road so the first frame already shows the approach.
+      for (let i = 0; i <= 3; i += 1) newRow(i * ROW_SPACING);
+      nextBook = 1;
       setLane(1);
       after.textContent = 'After ' + BOOKS[0];
       requestAnimationFrame(frame);
