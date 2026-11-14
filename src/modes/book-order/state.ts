@@ -66,18 +66,35 @@ export type BookOrderState = {
 
 const sectionOf = (order: number): SectionId => BOOKS[order - 1].section;
 
-/** Candidate Distractors: the answer's own Section, or its nearest neighbours. */
-function distractorPool(section: SectionId, answer: number): number[] {
+/** How far a Stumbled Row may travel in one `advance`: half the ground it was pushed back. */
+const STUMBLE_FRAME_TRAVEL = STUMBLE_PUSH_BACK / 2;
+
+/**
+ * Candidate Distractors, most plausible first: the answer's own Section, then the
+ * nearest Books by canon position. A name already on the road is left out, because
+ * a name on two Gates at once is a name to misread; only a canon too small to fill
+ * the road without it offers one.
+ */
+function distractorPool(
+  section: SectionId,
+  answer: number,
+  onRoad: ReadonlySet<number>,
+): number[] {
   const peers = BOOKS.filter(
     (book) => book.section === section && book.order !== answer,
   ).map((book) => book.order);
-  if (peers.length >= LANES - 1) return peers;
-  // A Section with fewer than three Books borrows the nearest Books by canon
-  // position, so the choice is still about where a Book sits.
+  const unseenPeers = peers.filter((order) => !onRoad.has(order));
+  if (unseenPeers.length >= LANES - 1) return unseenPeers;
+  // A Section with fewer than three Books, or one whose names are nearly all on
+  // the road already, borrows the nearest Books by canon position, so the choice
+  // is still about where a Book sits.
   const nearest = BOOKS.filter((book) => book.section !== section)
     .sort((a, b) => Math.abs(a.order - answer) - Math.abs(b.order - answer))
     .map((book) => book.order);
-  return [...peers, ...nearest];
+  const unseen = [...peers, ...nearest].filter((order) => !onRoad.has(order));
+  // Only the nearest few, so a Distractor is always a plausible neighbour rather
+  // than any Book the road happens not to be showing.
+  return (unseen.length >= LANES - 1 ? unseen : [...peers, ...nearest]).slice(0, LANES * 2);
 }
 
 const pairKey = (pair: readonly number[]): string => [...pair].sort((a, b) => a - b).join('-');
@@ -100,12 +117,7 @@ function drawRow(
   usedPairs: readonly string[],
   onRoad: ReadonlySet<number>,
 ): { gates: number[]; rng: RandomState; usedPairs: readonly string[] } {
-  const near = distractorPool(section, answer);
-  const unseen = near.filter((order) => !onRoad.has(order));
-  // A name already showing on the road is a Gate the Runner cannot tell apart
-  // from the answer; a Section too small to avoid every name falls back to it.
-  const pool = unseen.length >= LANES - 1 ? unseen : near;
-  const pairs = pairsOf(pool);
+  const pairs = pairsOf(distractorPool(section, answer, onRoad));
   const fresh = pairs.filter((pair) => !usedPairs.includes(pairKey(pair)));
   // shortcut: a four-Book Section runs out of fresh Distractor pairs after
   // three laps, so a long Run reuses one; upgrade if a player outlasts that.
@@ -140,7 +152,14 @@ function topUp(state: BookOrderState): BookOrderState {
   while (answers.length < ROWS_ON_ROAD) {
     answers.push(nextBookOnRoute(state.route, answers[answers.length - 1] ?? state.position));
   }
-  const onRoad = new Set([...answers, ...state.rows.flatMap((row) => row.gates)]);
+  // Every answer that will reach the road before the farthest Row does: a
+  // Distractor drawn for that Row must not be one of them, or the same name is
+  // on two Gates at once. A name on two Gates is a name to misread.
+  const reserved = [...answers];
+  while (reserved.length < ROWS_ON_ROAD * 2) {
+    reserved.push(nextBookOnRoute(state.route, reserved[reserved.length - 1]));
+  }
+  const onRoad = new Set([...reserved, ...state.rows.flatMap((row) => row.gates)]);
 
   let rows = state.rows;
   let rng = state.rng;
@@ -199,13 +218,13 @@ function stumble(state: BookOrderState): BookOrderState {
 }
 
 /** The correction was not made: the same Row arrives again in the wrong Lane, and the Run is over. */
-function caught(state: BookOrderState, rows: readonly Row[]): BookOrderState {
+function caught(state: BookOrderState, row: Row, rows: readonly Row[]): BookOrderState {
   return {
     ...state,
     rows,
     stumbled: false,
     over: true,
-    review: remember(state.review, state.rows[0].answer),
+    review: remember(state.review, row.answer),
   };
 }
 
@@ -214,7 +233,7 @@ function judge(state: BookOrderState): BookOrderState {
   const [row, ...rows] = state.rows;
 
   if (row.gates[state.lane] !== row.answer) {
-    return state.stumbled ? caught(state, rows) : stumble(state);
+    return state.stumbled ? caught(state, row, rows) : stumble(state);
   }
 
   const position = row.answer;
@@ -292,12 +311,17 @@ export function advance(
   if (!(dtMs > 0)) return steered;
 
   const dz = Math.max(0, dtMs) * (SPAWN_Z / rowTravelMs(approachSpeed(steered)));
+  // A Stumble is a promise of time to steer, so no single step may spend it: a
+  // frame long enough to reach the Row twice still leaves the correction standing.
+  const travel = steered.stumbled ? Math.min(dz, STUMBLE_FRAME_TRAVEL) : dz;
   let next: BookOrderState = {
     ...steered,
-    rows: steered.rows.map((row) => ({ ...row, z: row.z - dz })),
+    rows: steered.rows.map((row) => ({ ...row, z: row.z - travel })),
   };
   while (!next.over && next.offer === null && next.rows.length > 0 && next.rows[0].z <= 0) {
     next = judge(next);
+    // The Row that just Stumbled is never judged again in the frame it stumbled.
+    if (next.stumbled) break;
   }
   // The road is filled to keep asking, and a Run that is over asks nothing more.
   return next.over ? next : topUp(next);
