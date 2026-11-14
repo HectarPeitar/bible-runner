@@ -163,3 +163,29 @@ Asked after the first playable slice: should Book Order use three.js and/or WebG
 **Verdict:** stay on TypeScript + Vite + DOM/CSS. This does not weaken ADR-0001; it adds a reason.
 
 **Revisit trigger, so this is a decision and not a habit:** switch renderer only if a specified visual goal cannot be met by transform-based projection — e.g. a moving 3D subway tunnel, trains with perspective volume, skeletal character animation, or hundreds of simultaneous sprites/particles. If that happens, three.js (WebGL renderer first, WebGPU only as an opt-in path) is the right tool, and it is a **renderer swap inside one Mode** — `advance` stays pure and the shell, storage, boards, locales, routes and content table are untouched. That reversibility is exactly what the Mode boundary was for.
+
+## Addendum 2: if the target look is Subway Surfers, does three.js help then?
+
+"Subway Surfers style" is not one thing. Split the look into what makes it feel like that game, and ask per item what the web can do.
+
+| Element of the look | DOM/CSS today | Does three.js help? |
+| --- | --- | --- |
+| Behind-the-back perspective, road converging to a horizon | **Yes** — the spike does it with `scale = P/(P+z)` | No gain |
+| Strong forward motion, camera bob, FOV breathing with speed | **Yes** — transforms and keyframes | No gain; slightly easier with a camera, not worth the dependency |
+| Depth fog, vignette, speed streaks, rails, arches | **Mostly** — gradients, masks, pseudo-elements | Marginal |
+| Lit 3D geometry: tunnel walls, station platforms, train cars with volume and shadow | **No** | **Yes — decisive** |
+| Character with skeletal run/jump/roll animation | **No** (a sprite sheet in canvas, not DOM) | **Yes — decisive** |
+| Particles, coin shimmer, bloom, motion blur | **No** (a few DOM particles, not hundreds) | **Yes** |
+| Book names on gates | **Yes, perfectly** — real text, four scripts, font fallback | **Worse** — textures or font geometry, no selection, no screen reader |
+| Chunky HUD, score, buttons | **Yes** | No gain |
+
+So: **three.js would benefit the environment and the character, and it would actively hurt the text.** The honest split is two layers:
+
+- **Keep DOM for everything the player reads** — gates, names, HUD, menus, boards. Four-script text, accessible, selectable, sharp at any DPI.
+- **Add a WebGL layer behind it** if and when there is 3D art to show — a three.js canvas as the backdrop, DOM gates composited on top. That hybrid is how most web games ship a 3D look with readable UI.
+
+**The bottleneck is not the renderer, it is the art.** Subway Surfers looks like Subway Surfers because of hand-modelled characters, baked lighting, animation blending and years of art direction. A three.js scene with no assets is a grey tunnel with untextured boxes — strictly worse than what the spike already shows. For a first game, the realistic order is: make the 2D look *intentional* (palette, fog, rails, motion, one good typeface) before buying a 3D pipeline, because the 2D version can look deliberate, and an asset-less 3D version cannot.
+
+**Cost, roughly:** CSS look-dev on the existing projection is days and reversible. A three.js environment plus character with animation is weeks for someone new to 3D, plus an asset pipeline (glTF, rigging, materials), plus a second rendering path to keep working on phones.
+
+**Decision rule:** write down the target look as a reference image and a sentence — "a lit subway tunnel with passing trains and a running character" is a different project from "a clean readable track with good motion". If the sentence needs geometry, animation or many particles, adopt three.js for the backdrop and keep the text in DOM. If it does not, stay where we are — the current stack is not what is holding the look back.
